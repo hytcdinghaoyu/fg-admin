@@ -1,0 +1,32 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;margin-top: 20px;">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>上传Items表配置(.csv)</legend>
+    </fieldset>
+    <div class="layui-upload-drag" id="upload-csv">
+        <i class="layui-icon"></i>
+        <p>点击上传，或将文件拖拽到此处</p>
+    </div>
+</div>
+{{ define "server/upload-script"}}
+    <script>
+        layui.use(['upload', 'layer'], function () {
+            var $ = layui.jquery
+                , upload = layui.upload;
+            //拖拽上传
+            upload.render({
+                elem: '#upload-csv'
+                , url: '/server/upload'
+                , accept: 'file' //普通文件
+                , exts: 'csv' //只允许上传压缩文件
+                , done: function (res) {
+                    if (res.status === 0){
+                        layer.msg("上传成功")
+                    }else{
+                        layer.msg(res.msg)
+                    }
+                }
+            });
+        });
+
+    </script>
+{{end}}

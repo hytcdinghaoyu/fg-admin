@@ -1,0 +1,42 @@
+{{define "login/login-head"}}
+    <title>{{.siteName}} 登录</title>
+    <link rel="stylesheet" href="/static/css/login.css?t=1504439386550" media="all">
+{{end}}
+<div class="layui-carousel video_mask bg-img" id="login_carousel">
+
+    <div class="login layui-anim layui-anim-up">
+        <h1>FG管理后台{{.msg}}</h1></p>
+        <form class="layui-form" action="" method="post">
+            <div class="layui-form-item">
+                <input type="text" name="username" lay-verify="required" placeholder="请输入账号" autocomplete="off"
+                       value="{{.username}}" class="layui-input">
+            </div>
+            <div class="layui-form-item">
+                <input type="password" name="password" lay-verify="required" placeholder="请输入密码" autocomplete="off"
+                       value="" class="layui-input">
+            </div>
+            <button class="layui-btn login_btn" lay-submit="" lay-filter="login">登陆系统</button>
+        </form>
+    </div>
+</div>
+{{define "login/login-script"}}
+    <script type="text/javascript">
+        layui.use(['layer'], function () {
+
+            if (window.parent.length > 0){
+                window.parent.layer.closeAll();
+                window.parent.location.reload();
+            }
+
+            var layer = layui.layer; //弹层
+            var error_info = "{{.message}}";
+            if (error_info) {
+                layer.msg(error_info, {time: 2000, offset: '100px'});
+            }
+
+        })
+    </script>
+{{end}}
+
+
+

@@ -1,0 +1,106 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs6 tabAdd">
+            <a class="layui-btn" data-type="tabAdd" href="javascript:">新增</a>
+        </div>
+        <div class="layui-col-xs6 search_text">
+            <form class="layui-form" action="" onsubmit="return false;">
+                <div class="demoTable">
+                    <div class="layui-inline" style="width: 40%">
+                        <input class="layui-input" name="realName" id="realName" autocomplete="off" placeholder="服务器名" >
+                    </div>
+                    <button class="layui-btn" data-type="reload">查询</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+
+    <script type="text/html" id="bar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+</div>
+{{ define "season/list-script"}}
+<script>
+
+    layui.use(['table','form','element'], function(){
+        var table = layui.table;
+        //方法级渲染
+        table.render({
+            elem: '#table_list'
+            ,url: '/season/list'
+            ,cols: [[
+                // {checkbox: true, fixed: true},
+                {field:'Server',title: '服务器', width:150}
+                ,{field:'ActivityName', title: '活动名称', align:'center', width:150}
+                ,{field:'StartDate',title: '开始时间'}
+                ,{field:'EndDate', title: '结束时间'}
+                ,{fixed: 'right', width:200, align:'center', toolbar: '#bar'}
+            ]]
+            ,id: 'listReload'
+            ,page: true
+            ,height: "full-130"
+        });
+
+        var $ = layui.$, active = {
+            reload: function(){
+                table.reload('listReload', {
+                    where: {
+                        realName: $('#realName').val(),
+                    }
+                });
+            }
+        };
+
+        //监听工具条
+        table.on('tool(table_filter)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'del'){
+                layer.confirm('真的删除【'+data.nm+'】赛季么', function(index){
+                    var jsData = {'id':data.id}
+                    $.post('/season/delete', jsData, function (out) {
+                        if (out.status == 0) {
+                            layer.alert('删除成功了', {icon: 1},function(index){
+                                layer.close(index);
+                                window.location.reload();
+                                obj.del();
+                            });
+                        } else {
+                            layer.msg(out.message)
+                        }
+                    }, "json");
+                    layer.close(index);
+                });
+            } else if(obj.event === 'edit'){
+                layer.open({
+                    type: 2,
+                    shade: 0.3,
+                    id:1,
+                    title:"编辑赛季信息",
+                    content: '/season/upsert?id='+data.Id,
+                    area:['800px','600px'],
+                });
+            }
+        });
+
+        $('.tabAdd .layui-btn').on('click', function(){
+            layer.open({
+                type: 2,
+                shade: 0.3,
+                id:1,
+                title:"新增赛季信息",
+                content: '/season/upsert',
+                area:['800px','600px'],
+            });
+        });
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>
+{{end}}

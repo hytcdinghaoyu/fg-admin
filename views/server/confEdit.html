@@ -1,0 +1,53 @@
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>修改服务器地址</legend>
+</fieldset>
+<form class="layui-form" action="" onsubmit="javascript;" name="form" method="post">
+    <div class="layui-form-item">
+        <label class="layui-form-label">登录服地址</label>
+        <div class="layui-input-inline">
+            <input type="text" name="login_srv_ip" id="source_name" lay-verify="required" autocomplete="off"
+                   class="layui-input" value="{{.login_srv_ip}}">
+        </div>
+        <div class="layui-form-mid layui-word-aux">*</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">Gm服地址</label>
+        <div class="layui-input-inline">
+            <input type="text" name="gm_srv_ip" id="source_name" lay-verify="required" autocomplete="off"
+                   class="layui-input" value="{{.gm_srv_ip}}">
+        </div>
+        <div class="layui-form-mid layui-word-aux">*</div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+{{ define "server/confEdit-script"}}
+    <script>
+        var $;
+        layui.config({
+            base: "js/"
+        }).use(['form', 'element', 'layer', 'jquery'], function () {
+            var form = layui.form;
+            var $ = layui.jquery;
+            form.on('submit', function (data) {
+                var form_data = data.field;
+                $.post('/server/conf/edit', form_data, function (out) {
+                    if (out.status == 0) {
+                        layer.msg("操作成功", {icon: 1}, function () {
+                            window.location.reload();
+                        })
+                    } else {
+                        layer.msg(out.message)
+                    }
+                }, "json");
+                return false;
+            });
+
+            form.render();
+        });
+    </script>
+{{end}}

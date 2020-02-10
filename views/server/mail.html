@@ -1,0 +1,109 @@
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>GM发送邮件</legend>
+</fieldset>
+<form class="layui-form" action="" method="post">
+    <div class="layui-form-item">
+        <label class="layui-form-label" for="sid">服务器</label>
+        <div class="layui-input-inline">
+            <select name="sid" id="sid" lay-verify="required" lay-search="" style="width: 100%">
+                {{range $index,$elem := .serverList}}
+                    <option value="{{$elem.id}}" {{if eq $elem.id $.sid}} selected {{end}}>{{$elem.nm}}</option>
+                {{end}}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" for="uid">用户ID</label>
+        <div class="layui-input-block" style="width: 80%">
+            <input type="text" name="uid" id="uid" lay-verify="required" autocomplete="off"
+                   placeholder="用户ID(支持多个|分割)" class="layui-input">
+        </div>
+    </div>
+    <div class="attachment">
+        <div class="layui-form-item">
+            <label class="layui-form-label" for="item_id">附件</label>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <select name="item_ids[]" id="item_id" lay-verify="required" lay-search="">
+                        <option selected value="">直接选择或搜索选择</option>
+                        {{range $index,$elem := .items}}
+                            <option value="{{$elem.ID}}">{{$elem.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                <div class="layui-form-mid">-</div>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input type="text" name="item_nums[]" placeholder="物品数量" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-input-inline">
+                    <button type="button" class="layui-btn layui-btn-primary attach-del"><i class="layui-icon"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <button type="button" class="layui-btn-primary layui-btn add-attach">
+            <i class="layui-icon">&#xe608;</i> 添加
+        </button>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" for="title">标题</label>
+        <div class="layui-input-block" style="width: 80%">
+            <input type="text" name="title" id="title" lay-verify="required" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label" for="content">内容</label>
+        <div class="layui-input-block" style="width: 80%">
+            <textarea name="content" id="content" lay-verify="required" placeholder="请输入内容"
+                      class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="select_num" id="select_num" value="1">
+            <button class="layui-btn" lay-submit="" lay-filter="sub">发送</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+{{ define "server/mail-script"}}
+    <script>
+        layui.use(['form', 'element', 'table', 'layer', 'jquery'], function () {
+            var form = layui.form;
+            var $ = layui.jquery;
+
+            form.on('submit(sub)', function (data) {
+                var form_data = data.field;
+                $.post('/server/mail', form_data, function (out) {
+                    if (out.status === 0) {
+                        layer.msg("操作成功", {icon: 1}, function () {
+                            // window.location.href="/api/list";
+                        })
+                    } else {
+                        layer.msg(out.msg)
+                    }
+                }, "json");
+                return false;
+            });
+
+            var html = $('.attachment').html();
+            $('.add-attach').on('click', function () {
+                $('.attachment').append(html);
+
+                var se_c = $('#select_num').val();
+                $('#select_num').val(parseInt(se_c) + 1);
+                form.render('select');
+            });
+
+            form.render();
+
+            $(document).on('click', '.attach-del', function() {
+                $(this).parents('.layui-form-item').remove();
+            })
+
+        });
+
+    </script>
+{{end}}

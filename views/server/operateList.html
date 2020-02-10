@@ -1,0 +1,55 @@
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <div class="layui-row" style="margin-top: 20px;">
+        <div class="layui-col-xs6 search_text">
+            <form class="layui-form" action="" onsubmit="return false;">
+                <div class="demoTable">
+                    <div class="layui-inline" style="width: 40%">
+                        <input class="layui-input" name="realName" id="realName" autocomplete="off" placeholder="用户ID" >
+                    </div>
+                    <button class="layui-btn" data-type="reload">查询</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+    </table>
+</div>
+{{ define "server/operateList-script"}}
+    <script>
+
+        layui.use(['table','form','element'], function(){
+            var table = layui.table;
+            //方法级渲染
+            table.render({
+                elem: '#table_list'
+                ,url: '/server/operate/list'
+                ,cols: [[
+                    {field:'Uid',title: '用户ID'}
+                    ,{field:'Path', title: '路径'}
+                    ,{field:'IP', title: 'IP地址'}
+                    ,{field:'CreatedAt', title: '操作时间'}
+                ]]
+                ,id: 'listReload'
+                ,page: true
+                ,height: "full-130"
+            });
+
+            var $ = layui.$, active = {
+                reload: function(){
+                    table.reload('listReload', {
+                        where: {
+                            realName: $('#realName').val(),
+                        }
+                    });
+                }
+            };
+
+            $('.demoTable .layui-btn').on('click', function(){
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+        });
+    </script>
+{{end}}

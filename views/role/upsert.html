@@ -1,0 +1,150 @@
+{{ define "role/upsert-head"}}
+    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+{{end}}
+<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
+    <div class="layui-row">
+        <div style="margin-top: 20px">
+            <blockquote class="layui-elem-quote">
+                修改角色以及角色权限
+            </blockquote>
+        </div>
+        <div class="layui-col-xs2">
+            <fieldset class="layui-elem-field">
+                <legend>权限列表</legend>
+                <div id="lay-tree"></div>
+            </fieldset>
+        </div>
+        <div class="layui-col-md7">
+            <div class="layui-layout layui-layout-admin" style="padding-left: 40px;margin-top: 20px;">
+                <form class="layui-form" action="" onsubmit="javascript;" name="form" method="post">
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">角色名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="role_name" id="role_name" lay-verify="required" autocomplete="off"
+                                   placeholder="请输入角色名称" class="layui-input" value="{{.role.role_name}}">
+                        </div>
+                        <div class="layui-form-mid layui-word-aux"></div>
+                    </div>
+
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">备注</label>
+                        <div class="layui-input-block">
+                        <textarea name="detail" id="detail" placeholder="请输入内容"
+                                  class="layui-textarea">{{.role.detail}}</textarea>
+                        </div>
+                    </div>
+
+                    <input type="hidden" value="{{.role.id}}" name="id" id="id">
+
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit="" lay-filter="save">保存</button>
+                            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{{ define "role/upsert-script"}}
+    <script>
+        var $, form;
+        layui.config({
+            base: "js/"
+        }).use(['form', 'element', 'layer', 'jquery', 'tree'], function () {
+            form = layui.form;
+            tree = layui.tree;
+            $ = layui.jquery;
+            $("form").submit(function () {
+                var role_name = $("#role_name").val();
+                if (!role_name) {
+                    layer.msg('请填写角色名称');
+                    return false;
+                }
+                var id = $("#id").val();
+                var detail = $("#detail").val();
+
+                var nodes = tree.getChecked('auth-all');
+
+
+                var nodes_data = nodes_select_data(nodes, {});
+                var data = {'role_name': role_name, 'id': id, 'detail': detail, 'nodes_data': nodes_data};
+                console.log(data);
+                $.post('/role/upsert', data, function (out) {
+                    if (out.status == 0) {
+                        layer.alert('保存成功了', {icon: 1}, function (index) {
+                            window.parent.layer.closeAll();
+                            window.parent.location.reload();
+                        });
+                    } else {
+                        layer.msg(out.message)
+                    }
+                }, "json");
+                return false;
+            });
+            form.render();
+
+            $.ajax({
+                type: "POST",
+                url: "/auth/tree",
+                dataType: 'json',
+                success: function (data) {
+                    if (data.code !== 0) {
+                        return false;
+                    }
+                    zNodes = init_checked(data.data);
+                    console.log(zNodes);
+                    tree.render({elem: '#lay-tree', data: zNodes, id: "auth-all", showCheckbox: true});
+
+                }
+            });
+
+        });
+    </script>
+
+    <script type="text/javascript">
+        var zNodes = [{id: 1, pId: 0, name: "数据错误"}];
+        var checked = {{.auth}}
+        var setting = {
+            check: {
+                enable: true
+            },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            }
+        };
+
+        function init_checked(zNodes) {
+            $.each(zNodes, function (k, v) {
+                $.each(v.children, function (kk, vv) {
+                    if ($.inArray(vv.id, checked) >= 0) {
+                        vv.checked = true;
+                    }
+                });
+            });
+            return zNodes;
+        }
+
+        function nodes_select_data(obj, nodes) {
+            var nodes_str = '';
+            $.each(obj, function (k, v) {
+                if (!v['title']) return nodes;
+
+                $.each(v['children'], function (kk, vv) {
+                    nodes_str += vv['id'] + ","
+                });
+
+                nodes_str += v['id'] + ","
+            });
+
+            return nodes_str;
+        }
+
+    </script>
+{{end}}
