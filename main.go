@@ -22,7 +22,6 @@ func main() {
 		&models.Role{},
 		&models.Permission{},
 		&models.OperationLog{},
-		&models.Season{},
 	)
 
 	iris.RegisterOnInterrupt(func() {
@@ -61,5 +60,6 @@ func basicMVC(app *mvc.Application) {
 	app.Party("/role").Handle(new(controller.RoleController))
 	app.Party("/auth").Handle(new(controller.AuthController))
 	app.Party("/season").Handle(new(controller.SeasonController))
+	app.Party("/monitor").Handle(new(controller.MonitorController))
 
 }

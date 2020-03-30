@@ -1,6 +1,3 @@
-{{ define "role/upsert-head"}}
-    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
-{{end}}
 <div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
     <div class="layui-row">
         <div style="margin-top: 20px">
@@ -53,9 +50,7 @@
 {{ define "role/upsert-script"}}
     <script>
         var $, form;
-        layui.config({
-            base: "js/"
-        }).use(['form', 'element', 'layer', 'jquery', 'tree'], function () {
+        layui.use(['form', 'element', 'layer', 'jquery', 'tree'], function () {
             form = layui.form;
             tree = layui.tree;
             $ = layui.jquery;
@@ -69,11 +64,8 @@
                 var detail = $("#detail").val();
 
                 var nodes = tree.getChecked('auth-all');
-
-
                 var nodes_data = nodes_select_data(nodes, {});
                 var data = {'role_name': role_name, 'id': id, 'detail': detail, 'nodes_data': nodes_data};
-                console.log(data);
                 $.post('/role/upsert', data, function (out) {
                     if (out.status == 0) {
                         layer.alert('保存成功了', {icon: 1}, function (index) {
@@ -97,7 +89,6 @@
                         return false;
                     }
                     zNodes = init_checked(data.data);
-                    console.log(zNodes);
                     tree.render({elem: '#lay-tree', data: zNodes, id: "auth-all", showCheckbox: true});
 
                 }

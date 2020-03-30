@@ -2,11 +2,12 @@ package models
 
 import (
 	"encoding/json"
+	"fg-admin/constant"
 )
 
 const (
 	STATUS_OP_FAILED = -1
-	MSG_OP_FIALED = "操作失败"
+	MSG_OP_FIALED    = "操作失败"
 )
 
 type ServerInfo struct {
@@ -22,18 +23,79 @@ type ServerInfo struct {
 	Action string `json:"act"`
 }
 
-// 获取服务器列表
 func GetServerList() interface{} {
 
-	serverList, _ := MemCache.Get("serverlist")
+	serverList, _ := MemCache.Get(constant.CACHE_SERVER_LIST)
 	if serverList == nil {
 		ret := PostLogin("/serverlist", []byte(`{"act": "select"}`))
 		if data, ok := ret["data"]; ok {
-			setCache(data.([]interface{}))
+			MemCache.Set(constant.CACHE_SERVER_LIST, data, -1)
 			return data
 		}
 	}
-	return serverList.(map[int]interface{})
+	return serverList
+}
+
+func GetServerIds() []int32 {
+	serverList :=  GetServerList()
+	list, ok := serverList.([]interface{})
+	ids := []int32{}
+	if ok {
+		for _, v := range list {
+			if m, ok := v.(map[string]interface{}); ok {
+ 				ids = append(ids, int32(m["id"].(float64)))
+			}
+		}
+	}
+	return ids
+}
+
+func GetServerSelect() []map[string]interface{} {
+	serverList :=  GetServerList()
+	list, ok := serverList.([]interface{})
+	ret := []map[string]interface{}{}
+	if ok {
+		for _, v := range list {
+			if m, ok := v.(map[string]interface{}); ok {
+				s := map[string]interface{}{}
+				s["value"] = int32(m["id"].(float64))
+				s["name"] = m["nm"].(string)
+				s["selected"] = true
+				ret = append(ret, s)
+			}
+		}
+	}
+	return ret
+}
+
+func GetServerMap() map[int32]string {
+	serverList :=  GetServerList()
+	list, ok := serverList.([]interface{})
+	ret := map[int32]string{}
+	if ok {
+		for _, v := range list {
+			if m, ok := v.(map[string]interface{}); ok {
+				ret[int32(m["id"].(float64))] = m["nm"].(string)
+			}
+		}
+	}
+	return ret
+}
+
+func GetServerInfo(sid int) map[string]interface{} {
+	serverList :=  GetServerList()
+	list, ok := serverList.([]interface{})
+	ret := map[string]interface{}{}
+	if ok {
+		for _, v := range list {
+			if m, ok := v.(map[string]interface{}); ok {
+				if int(m["id"].(float64)) == sid {
+					return m
+				}
+			}
+		}
+	}
+	return ret
 }
 
 // 新增或修改服务器
@@ -48,15 +110,6 @@ func UpsertServer(s ServerInfo) float64 {
 		return val.(float64)
 	}
 	return STATUS_OP_FAILED
-}
-
-func setCache(m []interface{}) {
-	c := make(map[int]interface{})
-	for _, v := range m {
-		k := v.(map[string]interface{})["id"].(float64)
-		c[int(k)] = v
-	}
-	MemCache.Set("serverlist", c, -1)
 }
 
 // 删除服务器

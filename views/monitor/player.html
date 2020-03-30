@@ -1,0 +1,231 @@
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header layuiadmin-card-header-auto">
+                    <form action="" class="layui-form layui-form-pane" onsubmit="return false;">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="sid" class="layui-form-label">服务器</label>
+                                <div class="layui-input-inline">
+                                    <select name="sid" id="sid" lay-search="" lay-verify="required">
+                                        {{range $k, $v := .serverList}}
+                                            <option {{if eq $v.id $.sid}} selected {{end}} value="{{$v.id}}"> {{$v.nm}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">玩家uid</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="uid" class="layui-input" id="uid" value="{{.uid}}">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <button type="button" class="layui-btn" data-type="reload">查询</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    基础信息
+                </div>
+                <div class="layui-card-body">
+                    <form class="layui-form layui-form-pane" action="" method="post">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">昵称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.name}}" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">UID</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.uid}}" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">等级</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.lv}}" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">金币</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.gold}}" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">钻石</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.do}}" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">主线进度</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.stage.cp}}" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">爬塔进度</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.tstage.cp}}" disabled>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">IP</label>
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" value="{{.data.player.ip}}" disabled>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    英雄
+                </div>
+                <div class="layui-card-body">
+                    <table lay-filter="hero">
+                        <thead>
+                        <tr>
+                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'level'}">等级</th>
+                            <th lay-data="{field:'star'}">星级</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range $v := .data.hero}}
+                            <tr>
+                                <td>{{$v.i}}</td>
+                                <td>{{$v.l}}</td>
+                                <td>{{$v.s}}</td>
+                            </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    宠物
+                </div>
+                <div class="layui-card-body">
+                    <table lay-filter="pet">
+                        <thead>
+                        <tr>
+                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'level'}">等级</th>
+                            <th lay-data="{field:'star'}">星级</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range $vv := .data.pet}}
+                            <tr>
+                                <td>{{$vv.i}}</td>
+                                <td>{{$vv.l}}</td>
+                                <td>{{$vv.s}}</td>
+                            </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    道具
+                </div>
+                <div class="layui-card-body">
+                    <table lay-filter="item">
+                        <thead>
+                        <tr>
+                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'count'}">数量</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range $v := .data.item}}
+                            <tr>
+                                <td>{{$v.i}}</td>
+                                <td>{{$v.c}}</td>
+                            </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    战魂
+                </div>
+                <div class="layui-card-body">
+                    <table lay-filter="equip">
+                        <thead>
+                        <tr>
+                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'level'}">Index</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range $v := .data.equip}}
+                            <tr>
+                                <td>{{$v.i}}</td>
+                                <td>{{$v.d}}</td>
+                            </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{{ define "monitor/player-script"}}
+    <script>
+        layui.use(['form','table'],function(){
+            var $ = layui.$, form = layui.form, table = layui.table;
+            var active = {
+                //根据条件查询
+                reload: function () {
+                    var sid = $("#sid").val();
+                    var uid = $("#uid").val();
+                    window.location.href = "/monitor/player?sid="+ sid +"&uid=" + uid;
+                }
+            };
+
+            table.init('hero', {height: 400});
+            table.init('pet', {height: 400});
+            table.init('item', {height: 400});
+            table.init('equip');
+
+            $('.layui-form .layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+
+        });
+
+    </script>
+{{end}}

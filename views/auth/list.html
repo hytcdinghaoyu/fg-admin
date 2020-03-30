@@ -1,5 +1,4 @@
 {{ define "auth/list-head"}}
-    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
 {{end}}
 <div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
     <div class="layui-row" style="margin-top: 20px">
@@ -99,7 +98,7 @@
 
 {{ define "auth/list-script"}}
     <script>
-        var $, form;
+        var $, form, tree;
         layui.config({
             base: "js/"
         }).use(['form', 'element', 'layer', 'jquery', 'tree'], function () {
@@ -183,30 +182,28 @@
                 }
             });
 
-        });
-    </script>
-
-    <script type="text/javascript">
-        $(document).ready(function () {
-            //删除
-            $('#del').on('click', function () {
-                var id = $("#id").val();
-                if (id == 0) {
-                    layer.msg('请在左侧权限树选择节点');
+            $(document).ready(function () {
+                //删除
+                $('#del').on('click', function () {
+                    var id = $("#id").val();
+                    if (id == 0) {
+                        layer.msg('请在左侧权限树选择节点');
+                        return false;
+                    }
+                    layer.confirm('确认要删除吗？', {icon: 3, title: '提示'}, function (index) {
+                        $.post('/auth/delete', {id: id}, function (out) {
+                            if (out.status == 0) {
+                                layer.alert('你删除成功了', {icon: 1}, function (index) {
+                                    window.location.reload();
+                                });
+                            } else {
+                                layer.msg(out.message)
+                            }
+                        }, "json");
+                    });
                     return false;
-                }
-                layer.confirm('确认要删除吗？', {icon: 3, title: '提示'}, function (index) {
-                    $.post('/auth/delete', {id: id}, function (out) {
-                        if (out.status == 0) {
-                            layer.alert('你删除成功了', {icon: 1}, function (index) {
-                                window.location.reload();
-                            });
-                        } else {
-                            layer.msg(out.message)
-                        }
-                    }, "json");
                 });
-                return false;
+
             });
 
         });

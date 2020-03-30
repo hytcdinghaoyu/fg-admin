@@ -1,0 +1,44 @@
+[app]
+  #app 名称
+  name = "fg-admin"
+  #app url
+  url  = "http://localhost"
+
+  addr = ":8080"
+  #单元测试调试信息
+  debug = false
+
+  [app.logger]
+    level = "INFO"
+    name = "application"
+
+#数据库驱动
+[database]
+    driver = "mysql"
+
+[mysql]
+   db ="fg-admin"
+   username ="root"
+   password ="123456"
+
+[login_server]
+    host = "http://47.103.33.16:8080"
+#    host = "http://172.16.30.83:8080"
+
+[gm_server]
+#    host = "http://172.16.30.83:8616"
+    host = "http://47.103.33.16:8631"
+
+[log_server]
+    host = "http://172.16.30.83:8615"
+#    host = "http://47.103.33.16:8631"
+
+[test]
+    #测试登陆用户名
+    LoginUserName = "ding"
+    #测试用户名
+    LoginName = "ding"
+    #测试用户密码
+    LoginPwd = "123456"
+    #测试数据库驱动
+    DataBaseDriver = "mysql"

@@ -17,8 +17,14 @@ type OperationLog struct {
 }
 
 // 分页获取用户记录
-func GetAllOpLogs(name, orderBy string, page, limit int) (logs []*OperationLog) {
-	if err := GetAll(name, orderBy, page, limit).Find(&logs).Error; err != nil {
+func GetAllOpLogs(uid int, orderBy string, page, limit int) (logs []*OperationLog) {
+
+	TDB := DB
+	if uid > 0 {
+		TDB = TDB.Where("uid =  ?", uid)
+	}
+
+	if err := TDB.Offset((page - 1) * limit).Limit(limit).Find(&logs).Error; err != nil {
 		fmt.Printf("GetAllOpLogsErr:%s", err)
 	}
 	return

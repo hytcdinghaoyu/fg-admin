@@ -16,6 +16,7 @@ var (
 	ItemConf = NewItemConf()
 	LoginServerAddr = Conf.Get("login_server.host").(string)
 	GmServerAddr = Conf.Get("gm_server.host").(string)
+	LogServerAddr = Conf.Get("log_server.host").(string)
 )
 
 type JwtClaims struct {
@@ -40,7 +41,7 @@ type Item struct {
  * @method New
  */
 func New() *toml.Tree {
-	config, err := toml.LoadFile("./config/config.toml")
+	config, err := toml.LoadFile("./config.toml")
 
 	if err != nil {
 		fmt.Println("TomlError ", err.Error())

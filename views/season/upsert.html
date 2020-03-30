@@ -1,19 +1,15 @@
-<div style="padding: 20px 10px;">
-    <form class="layui-form" action="" method="post" >
+<div style="padding: 20px 30px;">
+    <form class="layui-form layui-form-pane" action="" method="post">
         <div class="layui-form-item">
             <label class="layui-form-label" for="sid">服务器</label>
-            <div class="layui-input-inline">
-                <select name="sid" id="sid" lay-verify="required" lay-search="" style="width: 100%">
-                    {{range $index,$elem := .serverList}}
-                        <option value="{{$elem.id}}" {{if eq $elem.id $.sid}} selected {{end}}>{{$elem.nm}}</option>
-                    {{end}}
-                </select>
+            <div class="layui-input-block">
+                <div id="sid"></div>
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">活动名</label>
+            <label class="layui-form-label">活动类型</label>
             <div class="layui-input-inline">
-                <select name="activity_id" id="role_id" lay-search="">
+                <select name="activity_type" id="activity_type" lay-search="">
                     {{range $k, $v := .activity_map}}
                         <option value="{{$k}}"> {{$v}}</option>
                     {{end}}
@@ -24,32 +20,111 @@
         <div class="layui-form-item">
             <label class="layui-form-label">时间范围</label>
             <div class="layui-input-inline" style="width: 40%">
-                <input type="text" name="date-range" class="layui-input" id="date-range" placeholder=" - " value="{{.date_range}}">
+                <input type="text" name="date-range" class="layui-input" id="date-range" placeholder=" - "
+                       value="{{.date_range}}">
             </div>
             <div class="layui-form-mid layui-word-aux">*</div>
         </div>
         <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
-                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            <div class="layui-upload">
+                <button type="button" class="layui-btn layui-btn-normal" id="testList">选择多文件</button>
+                <div class="layui-upload-list">
+                    <table class="layui-table">
+                        <thead>
+                        <tr>
+                            <th>文件名</th>
+                            <th>大小</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="demoList"></tbody>
+                    </table>
+                </div>
+                <button type="button" class="layui-btn" id="testListAction">开始上传</button>
+                <input id="upload-key" name="upload_key" type="hidden" value="{{.upload_key}}}">
             </div>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
         </div>
     </form>
 </div>
 {{ define "season/upsert-script"}}
+    <script src="/static/xm-select/dist/xm-select.js"></script>
     <script>
-        var $;
-        layui.config({
-            base : "js/"
-        }).use(['form','element','layer','jquery','laydate'],function(){
-            var form = layui.form; //只有执行了这一步，部分表单元素才会自动修饰成功
+        layui.use(['form', 'jquery', 'laydate', 'upload'], function () {
+            var form = layui.form;
             var $ = layui.jquery;
             var laydate = layui.laydate;
-            form.on('submit(sub)', function(data){
+            var upload = layui.upload;
+
+            //多文件上传
+            var upload_key = $("#upload-key").val();
+            var demoListView = $('#demoList')
+                , uploadListIns = upload.render({
+                elem: '#testList'
+                , url: '/season/upload' //改成您自己的上传接口
+                , accept: 'file'
+                , exts: 'csv'
+                , multiple: true
+                , auto: false
+                , bindAction: '#testListAction'
+                , data:{upload_key: upload_key}
+                , choose: function (obj) {
+                    var files = this.files = obj.pushFile(); //将每次选择的文件追加到文件队列
+                    //读取本地文件
+                    obj.preview(function (index, file, result) {
+                        var tr = $(['<tr id="upload-' + index + '">'
+                            , '<td>' + file.name + '</td>'
+                            , '<td>' + (file.size / 1024).toFixed(1) + 'kb</td>'
+                            , '<td>等待上传</td>'
+                            , '<td>'
+                            , '<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>'
+                            , '<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>'
+                            , '</td>'
+                            , '</tr>'].join(''));
+
+                        //单个重传
+                        tr.find('.demo-reload').on('click', function () {
+                            obj.upload(index, file);
+                        });
+
+                        //删除
+                        tr.find('.demo-delete').on('click', function () {
+                            delete files[index]; //删除对应的文件
+                            tr.remove();
+                            uploadListIns.config.elem.next()[0].value = ''; //清空 input file 值，以免删除后出现同名文件不可选
+                        });
+
+                        demoListView.append(tr);
+                    });
+                }
+                , done: function (res, index, upload) {
+                    if (res.status === 0) { //上传成功
+                        var tr = demoListView.find('tr#upload-' + index)
+                            , tds = tr.children();
+                        tds.eq(2).html('<span style="color: #5FB878;">上传成功</span>');
+                        tds.eq(3).html(''); //清空操作
+                        return delete this.files[index]; //删除文件队列已经上传成功的文件
+                    }
+                    this.error(index, upload);
+                }
+                , error: function (index, upload) {
+                    var tr = demoListView.find('tr#upload-' + index)
+                        , tds = tr.children();
+                    tds.eq(2).html('<span style="color: #FF5722;">上传失败</span>');
+                    tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+                }
+            });
+
+            form.on('submit(sub)', function (data) {
                 var form_data = data.field;
+                console.log(form_data);
                 $.post('/season/upsert', form_data, function (out) {
                     if (out.status == 0) {
-                        layer.msg("操作成功",{icon: 1},function () {
+                        layer.msg("操作成功", {icon: 1}, function () {
                             window.parent.layer.closeAll();
                             window.parent.location.reload();
                         })
@@ -63,13 +138,30 @@
             //日期时间范围
             laydate.render({
                 elem: '#date-range'
-                ,type: 'datetime'
-                ,range: true
+                , type: 'datetime'
+                , range: true
             });
 
-            //但是，如果你的HTML是动态生成的，自动渲染就会失效
-            //因此你需要在相应的地方，执行下述方法来手动渲染，跟这类似的还有 element.init();
+            //表单渲染
             form.render();
+
+            //选择框
+            $.post('/server/list', null, function (out) {
+                selectSid.update({
+                    data: out.data,
+                    autoRow: true,
+                })
+            }, "json");
         });
+
+        var selectSid = xmSelect.render({
+            el: '#sid',
+            filterable: true,
+            toolbar: {
+                show: true,
+            },
+            autoRow: true,
+            data: [],
+        })
     </script>
 {{end}}

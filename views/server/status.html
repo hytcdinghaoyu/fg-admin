@@ -1,0 +1,57 @@
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table class="layui-hide" id="table_list" lay-filter="table_filter">
+            </table>
+        </div>
+    </div>
+</div>
+{{ define "server/status-script"}}
+<script>
+
+    layui.use(['table'], function(){
+        var table = layui.table;
+        //方法级渲染
+        table.render({
+            elem: '#table_list'
+            ,url: '/server/status'
+            ,initSort: {
+                field: 'Stype' //排序字段，对应 cols 设定的各字段名
+                ,type: 'asc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
+            }
+            ,cols: [[
+                // {checkbox: true, fixed: true},
+                {field:'Sid', title: 'SID', align:'center',sort: true}
+                ,{field:'Stype',title: '类型ID', sort: true}
+                ,{field:'ServerType',title: '服务器类型'}
+                ,{field:'ServerName',title: '服务器名'}
+                ,{field:'Status',title: '服务器状态'}
+                ,{
+                    field: 'ConnListName', title: '连接服务', width:"25%", templet: function (d) {
+                        var str = "";
+                        if (d.ConnListName == null) {
+                            return str
+                        }
+                        if (d.ConnListName.length > 0) {
+                            for (var i = 0, len = d.ConnListName.length; i < len; i++) {
+                                str += '<a class="layui-btn layui-btn-xs">' + d.ConnListName[i] + '</a>'
+                            }
+                        }
+                        return str
+                    }
+                }
+                ,{field:'StartTime',title: '启动时间'}
+                ,{field:'RunningTime', title: '运行时间'}
+                ,{field:'UserOnline', title: '在线人数', sort: true}
+                ,{field:'UserCount', title: '用户数'}
+
+            ]]
+            ,id: 'listReload'
+            ,page: true
+            ,limit: 20
+            ,height: "full-130"
+        });
+
+    });
+</script>
+{{end}}

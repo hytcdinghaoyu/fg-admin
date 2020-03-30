@@ -1,0 +1,90 @@
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>生成奖励兑换码</legend>
+</fieldset>
+<form class="layui-form" action="/server/code/gen" method="post">
+    <div class="layui-form-item">
+        <label class="layui-form-label" for="name">名称</label>
+        <div class="layui-input-block" style="width: 40%">
+            <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" for="uid">数量</label>
+        <div class="layui-input-block" style="width: 20%">
+            <input type="text" name="num" id="num" lay-verify="number" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" for="date">失效时间</label>
+        <div class="layui-input-inline" style="width: 40%">
+            <input type="text" name="date" class="layui-input" id="exp-date" placeholder="">
+        </div>
+    </div>
+    <div class="attachment">
+        <div class="layui-form-item">
+            <label class="layui-form-label" for="item_id">奖励</label>
+            <div class="layui-inline">
+                <div class="layui-input-inline">
+                    <select name="item_ids[]" id="item_id" lay-verify="required" lay-search="">
+                        <option selected value="">直接选择或搜索选择</option>
+                        {{range $index,$elem := .items}}
+                            <option value="{{$elem.ID}}">{{$elem.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                <div class="layui-form-mid">-</div>
+                <div class="layui-input-inline" style="width: 100px;">
+                    <input type="text" name="item_nums[]" lay-verify="number" placeholder="物品数量" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-input-inline">
+                    <button type="button" class="layui-btn layui-btn-primary attach-del"><i class="layui-icon"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <button type="button" class="layui-btn-primary layui-btn add-attach">
+            <i class="layui-icon">&#xe608;</i> 添加
+        </button>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="select_num" id="select_num" value="1">
+            <button class="layui-btn" lay-submit="" lay-filter="sub">导出</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+{{ define "server/gencode-script"}}
+    <script>
+        layui.use(['form', 'jquery', 'laydate'], function () {
+            var form = layui.form;
+            var $ = layui.jquery;
+            var laydate = layui.laydate;
+            var html = $('.attachment').html();
+            $('.add-attach').on('click', function () {
+                $('.attachment').append(html);
+
+                var se_c = $('#select_num').val();
+                $('#select_num').val(parseInt(se_c) + 1);
+                form.render('select');
+            });
+
+            $(document).on('click', '.attach-del', function() {
+                $(this).parents('.layui-form-item').remove();
+
+                var se_c = $('#select_num').val();
+                $('#select_num').val(parseInt(se_c) - 1);
+            });
+
+            //日期时间范围
+            laydate.render({
+                elem: '#exp-date'
+                ,type: 'datetime'
+            });
+
+        });
+
+    </script>
+{{end}}

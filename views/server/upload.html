@@ -10,8 +10,7 @@
 {{ define "server/upload-script"}}
     <script>
         layui.use(['upload', 'layer'], function () {
-            var $ = layui.jquery
-                , upload = layui.upload;
+            var upload = layui.upload;
             //拖拽上传
             upload.render({
                 elem: '#upload-csv'

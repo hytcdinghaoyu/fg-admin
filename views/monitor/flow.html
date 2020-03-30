@@ -1,0 +1,118 @@
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header layuiadmin-card-header-auto">
+                    <form action="" class="layui-form layui-form-pane" onsubmit="return false;">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="sid" class="layui-form-label">服务器</label>
+                                <div class="layui-input-inline">
+                                    <select name="sid" id="sid" lay-search="" lay-verify="required">
+                                        {{range $k, $v := .serverList}}
+                                            <option value="{{$v.id}}"> {{$v.nm}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">uid</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="uid" class="layui-input" id="uid">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">道具ID</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="itemId" class="layui-input" id="itemId">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">时间</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="date" class="layui-input" id="date-range" placeholder=" - ">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <div class="layui-inline">
+                                    <button type="button" class="layui-btn" data-type="reload">查询</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    流水表
+                </div>
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{{ define "monitor/flow-script"}}
+    <script>
+        layui.use(['form', 'table', 'laydate'], function () {
+            var $ = layui.$, form = layui.form, table = layui.table;
+            var laydate = layui.laydate;
+
+            //日期时间范围
+            laydate.render({
+                elem: '#date-range'
+                , type: 'datetime'
+                , range: true
+            });
+
+            var active = {
+                //根据条件查询
+                reload: function () {
+                    table.reload('listReload', {
+                        where: {
+                            sid: $("#sid").val(),
+                            uid: $("#uid").val(),
+                            itemId: $("#itemId").val(),
+                            dateRange: $("#date-range").val()
+                        }
+                    });
+                },
+            };
+
+            table.render({
+                elem: '#table_list'
+                , url: '/monitor/flow'
+                , cols: [[
+                      {type: 'numbers', title: '序号'}
+                    , {field: 'itemId', title: '道具ID'}
+                    , {field: 'eid', title: '事件ID'}
+                    , {field: 'count', title: '数量'}
+                    , {field: 'before', title: '变动前'}
+                    , {field: 'after', title: '变动后'}
+                    , {field: 'reason', title: '理由'}
+                    , {field: 'time', title: '时间', sort: true}
+                ]]
+                , id: 'listReload'
+                , height: "full-130"
+                , page: true
+                , limit: 20
+            });
+
+            $('.layui-form .layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+
+        });
+
+    </script>
+{{end}}

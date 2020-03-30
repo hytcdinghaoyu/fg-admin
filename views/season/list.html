@@ -1,106 +1,250 @@
-<div class="layui-layout layui-layout-admin" style="padding-left: 20px;">
-    <div class="layui-row" style="margin-top: 20px;">
-        <div class="layui-col-xs6 tabAdd">
-            <a class="layui-btn" data-type="tabAdd" href="javascript:">新增</a>
-        </div>
-        <div class="layui-col-xs6 search_text">
-            <form class="layui-form" action="" onsubmit="return false;">
-                <div class="demoTable">
-                    <div class="layui-inline" style="width: 40%">
-                        <input class="layui-input" name="realName" id="realName" autocomplete="off" placeholder="服务器名" >
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-form layui-form-pane layui-card-header layuiadmin-card-header-auto">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">服务器</label>
+                        <div class="layui-input-block">
+                            <div id="sid"></div>
+                        </div>
                     </div>
-                    <button class="layui-btn" data-type="reload">查询</button>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">活动类型</label>
+                        <div class="layui-input-block">
+                            <div id="act-type"></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">活动状态</label>
+                        <div class="layui-input-block">
+                            <div id="act-status"></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">时间范围</label>
+                        <div class="layui-input-inline" style="width: 40%">
+                            <input type="text" name="date-range" class="layui-input" id="date-range" placeholder=" - ">
+                        </div>
+                        <div class="layui-form-mid layui-word-aux">*</div>
+                    </div>
+                    <div class="layui-form-item">
+                        <button class="layui-btn" data-type="reload">查询</button>
+                        <button class="layui-btn layui-btn-warm" data-type="add">新增</button>
+                        <button class="layui-btn layui-btn-danger" data-type="batchDelete">批量删除</button>
+                        <button class="layui-btn layui-btn-normal" data-type="load">发布配置</button>
+                    </div>
                 </div>
-            </form>
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+                    </table>
+
+                    <script type="text/html" id="bar">
+                        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+                    </script>
+                </div>
+            </div>
         </div>
     </div>
-
-    <table class="layui-hide" id="table_list" lay-filter="table_filter">
-    </table>
-
-    <script type="text/html" id="bar">
-        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-    </script>
 </div>
 {{ define "season/list-script"}}
-<script>
-
-    layui.use(['table','form','element'], function(){
-        var table = layui.table;
-        //方法级渲染
-        table.render({
-            elem: '#table_list'
-            ,url: '/season/list'
-            ,cols: [[
-                // {checkbox: true, fixed: true},
-                {field:'Server',title: '服务器', width:150}
-                ,{field:'ActivityName', title: '活动名称', align:'center', width:150}
-                ,{field:'StartDate',title: '开始时间'}
-                ,{field:'EndDate', title: '结束时间'}
-                ,{fixed: 'right', width:200, align:'center', toolbar: '#bar'}
-            ]]
-            ,id: 'listReload'
-            ,page: true
-            ,height: "full-130"
-        });
-
-        var $ = layui.$, active = {
-            reload: function(){
-                table.reload('listReload', {
-                    where: {
-                        realName: $('#realName').val(),
-                    }
-                });
-            }
-        };
-
-        //监听工具条
-        table.on('tool(table_filter)', function(obj){
-            var data = obj.data;
-            if(obj.event === 'del'){
-                layer.confirm('真的删除【'+data.nm+'】赛季么', function(index){
-                    var jsData = {'id':data.id}
-                    $.post('/season/delete', jsData, function (out) {
-                        if (out.status == 0) {
-                            layer.alert('删除成功了', {icon: 1},function(index){
-                                layer.close(index);
-                                window.location.reload();
-                                obj.del();
-                            });
-                        } else {
-                            layer.msg(out.message)
+    <script src="/static/xm-select/dist/xm-select.js"></script>
+    <script>
+        layui.use(['table', 'laydate'], function () {
+            var table = layui.table;
+            var laydate = layui.laydate;
+            //方法级渲染
+            table.render({
+                elem: '#table_list'
+                , url: '/season/list'
+                , cols: [[
+                    {checkbox: true, fixed: true}
+                    , {field: 'Id', title: 'ID', width: 50}
+                    , {field: 'Server', title: '服务器', width: 150}
+                    , {field: 'ActivityName', title: '活动类型', width: 150}
+                    , {field: 'ActivityType', title: '类型ID'}
+                    , {field: 'StatusText', title: '活动状态'}
+                    , {field: 'StartDate', title: '开始时间'}
+                    , {field: 'EndDate', title: '结束时间'}
+                    , {
+                        field: 'FileList', title: '配置文件', templet: function (d) {
+                            var str = "";
+                            if (d.FileList == null) {
+                                return str
+                            }
+                            if (d.FileList.length > 0) {
+                                for (var i = 0, len = d.FileList.length; i < len; i++) {
+                                    str += '<a class="layui-btn layui-btn-xs">' + d.FileList[i].name + '</a><br>'
+                                }
+                            }
+                            return str
                         }
-                    }, "json");
-                    layer.close(index);
-                });
-            } else if(obj.event === 'edit'){
-                layer.open({
-                    type: 2,
-                    shade: 0.3,
-                    id:1,
-                    title:"编辑赛季信息",
-                    content: '/season/upsert?id='+data.Id,
-                    area:['800px','600px'],
-                });
-            }
-        });
-
-        $('.tabAdd .layui-btn').on('click', function(){
-            layer.open({
-                type: 2,
-                shade: 0.3,
-                id:1,
-                title:"新增赛季信息",
-                content: '/season/upsert',
-                area:['800px','600px'],
+                    }
+                    , {fixed: 'right', width: 200, align: 'center', toolbar: '#bar'}
+                ]]
+                , id: 'listReload'
+                , height: "full-130"
             });
+
+            //日期时间范围
+            laydate.render({
+                elem: '#date-range'
+                , type: 'datetime'
+                , range: true
+            });
+
+            var $ = layui.$, active = {
+                //根据条件查询
+                reload: function () {
+                    table.reload('listReload', {
+                        where: {
+                            sid: selectSid.getValue("valueStr"),
+                            type: selectType.getValue("valueStr"),
+                            status: selectStatus.getValue("valueStr"),
+                            dateRange: $("#date-range").val()
+                        }
+                    });
+                },
+                //新增
+                add: function () {
+                    layer.open({
+                        type: 2,
+                        shade: 0.3,
+                        id: 1,
+                        title: "配置新活动",
+                        content: '/season/upsert',
+                        area: ['800px', '600px'],
+                    });
+                },
+                //批量删除
+                batchDelete: function () {
+                    var checkStatus = table.checkStatus('listReload')
+                        , data = checkStatus.data;
+                    console.log(data);
+                    var ids = "";
+                    for (var i = 0, len = data.length; i < len; i++) {
+                        ids += data[i].Id + ",";
+                    }
+
+                    if (ids == "") {
+                        return false
+                    }
+
+                    layer.confirm('确定批量删除吗', function (index) {
+                        var jsData = {'id': ids};
+                        $.post('/season/delete', jsData, function (out) {
+                            if (out.status == 0) {
+                                layer.alert('删除成功了', {icon: 1}, function (index) {
+                                    layer.close(index);
+                                    window.location.reload();
+                                    obj.del();
+                                });
+                            } else {
+                                layer.msg(out.msg)
+                            }
+                        }, "json");
+                        layer.close(index);
+                    });
+                },
+                //加载配置
+                load: function () {
+                    layer.confirm('确定重新加载所有配置吗', function (index) {
+                        var jsData = {};
+                        $.post('/season/load', jsData, function (out) {
+                            if (out.status == 0) {
+                                layer.alert(out.msg, {icon: 1}, function (index) {
+                                    layer.close(index);
+                                });
+                            } else {
+                                layer.msg(out.message)
+                            }
+                        }, "json");
+                        layer.close(index);
+                    });
+                }
+            };
+
+            //监听工具条
+            table.on('tool(table_filter)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'del') {
+                    layer.confirm('确定删除【' + data.ActivityName + '】么', function (index) {
+                        var jsData = {'id': data.Id};
+                        $.post('/season/delete', jsData, function (out) {
+                            if (out.status == 0) {
+                                layer.alert('删除成功了', {icon: 1}, function (index) {
+                                    layer.close(index);
+                                    window.location.reload();
+                                    obj.del();
+                                });
+                            } else {
+                                layer.msg(out.message)
+                            }
+                        }, "json");
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'edit') {
+                    console.log(data);
+                    layer.open({
+                        type: 2,
+                        shade: 0.3,
+                        id: 1,
+                        title: "编辑活动信息",
+                        content: '/season/edit?id=' + data.Id + "&act_name=" + data.ActivityName + "&server_name=" + data.Server + "&start_date=" + data.StartDate + "&end_date=" + data.EndDate + "&file_list=" + data.FileList,
+                        area: ['800px', '600px'],
+                    });
+                }
+            });
+
+            $('.layui-form .layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+
+            $.post('/server/list', null, function (out) {
+                selectSid.update({
+                    data: out.data,
+                    autoRow: true,
+                })
+            }, "json");
+
         });
 
-        $('.demoTable .layui-btn').on('click', function(){
-            var type = $(this).data('type');
-            active[type] ? active[type].call(this) : '';
+        var selectSid = xmSelect.render({
+            el: '#sid',
+            filterable: true,
+            toolbar: {
+                show: true,
+            },
+            autoRow: true,
+            data: [],
         });
-    });
-</script>
+
+        var selectType = xmSelect.render({
+            el: '#act-type',
+            filterable: true,
+            toolbar: {
+                show: true,
+            },
+            autoRow: true,
+            data: [
+                {name: '积分兑换-召唤', value: 201, selected: true},
+                {name: '英雄助战', value: 1, selected: true},
+                {name: '通用配置', value: 0, selected: true},
+            ],
+        });
+
+        var selectStatus = xmSelect.render({
+            el: '#act-status',
+            radio: true,
+            clickClose: true,
+            data: [
+                {name: '全部', value: 0, selected: true},
+                {name: '未开始', value: 1},
+                {name: '进行中', value: 2},
+                {name: '已结束', value: 3},
+            ],
+        })
+    </script>
 {{end}}

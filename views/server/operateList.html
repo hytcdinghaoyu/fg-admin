@@ -4,7 +4,7 @@
             <form class="layui-form" action="" onsubmit="return false;">
                 <div class="demoTable">
                     <div class="layui-inline" style="width: 40%">
-                        <input class="layui-input" name="realName" id="realName" autocomplete="off" placeholder="用户ID" >
+                        <input class="layui-input" name="uid" id="uid" autocomplete="off" placeholder="用户ID" >
                     </div>
                     <button class="layui-btn" data-type="reload">查询</button>
                 </div>
@@ -19,7 +19,7 @@
 {{ define "server/operateList-script"}}
     <script>
 
-        layui.use(['table','form','element'], function(){
+        layui.use(['table'], function(){
             var table = layui.table;
             //方法级渲染
             table.render({
@@ -33,6 +33,7 @@
                 ]]
                 ,id: 'listReload'
                 ,page: true
+                ,limit: 20
                 ,height: "full-130"
             });
 
@@ -40,7 +41,7 @@
                 reload: function(){
                     table.reload('listReload', {
                         where: {
-                            realName: $('#realName').val(),
+                            uid: $('#uid').val(),
                         }
                     });
                 }

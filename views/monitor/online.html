@@ -1,0 +1,98 @@
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header layuiadmin-card-header-auto">
+                    <form action="/monitor/online/export" class="layui-form layui-form-pane" method="post">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label for="sid" class="layui-form-label">服务器</label>
+                                <div class="layui-input-inline">
+                                    <select name="sid" id="sid" lay-search="" lay-verify="required">
+                                        {{range $k, $v := .serverList}}
+                                            <option {{if eq $v.id $.sid}} selected {{end}} value="{{$v.id}}"> {{$v.nm}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">日期</label>
+                                <div class="layui-input-inline" style="width: 40%">
+                                    <input type="text" name="date" class="layui-input" id="date-range" placeholder=" - " value="{{.date}}">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <button type="button" class="layui-btn" data-type="reload">查询</button>
+                                <button class="layui-btn" lay-submit="" lay-filter="sub">导出</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    实时在线玩家数
+                </div>
+                <div class="layui-card-body">
+                    <div class="layui-row">
+                        <div class="layui-col-sm12">
+                            <div class="layui-carousel layadmin-carousel layadmin-dataview" data-anim="fade"
+                                 lay-filter="LAY-index-pagetwo">
+                                <div carousel-item id="LAY-index-pagetwo">
+                                    <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{{ define "monitor/online-script"}}
+    <script>
+        layui.config({
+            base: '/static/layuiadmin/' //静态资源所在路径
+        }).extend({
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'sample']);
+
+        layui.use(['laydate', 'jquery', 'form'], function () {
+            var laydate = layui.laydate;
+            var form = layui.form;
+            var $ = layui.jquery;
+            //日期时间范围
+            laydate.render({
+                elem: '#date-range'
+                , type: 'date'
+                , range: false
+            });
+
+            var active = {
+                //根据条件查询
+                reload: function () {
+                    var sid = $("#sid").val();
+                    var dateRange = $("#date-range").val();
+                    window.location.href = "/monitor/online?sid="+ sid +"&date=" + dateRange;
+                }
+            };
+
+
+            $('.layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+
+            form.render()
+
+        });
+
+
+    </script>
+{{end}}

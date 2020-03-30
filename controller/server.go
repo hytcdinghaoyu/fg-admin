@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"fg-admin/config"
 	"fg-admin/model"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 type ServerController struct {
@@ -24,29 +26,34 @@ func (c *ServerController) GetList() mvc.Result {
 		}
 	}
 
-	list, ok := models.GetServerList().(map[int]interface{})
-	fmt.Println(list)
-	if !ok {
-		list = nil
+	list := models.GetServerList()
+	return c.pageData(list, 0)
+}
+
+// 服务器列表页面渲染
+func (c *ServerController) GetStatus() mvc.Result {
+	if !c.Ctx.IsAjax() {
+		return mvc.View{
+			Layout: "",
+			Name:   "server/status.html",
+		}
 	}
 
+	list := models.GetServerStatus()
+	return c.pageData(list, 0)
+}
+
+func (c *ServerController) PostList() mvc.Result {
+	list := models.GetServerSelect()
 	return c.pageData(list, len(list))
 }
 
 // 新增或修改页面渲染
 func (c *ServerController) GetUpsert() mvc.Result {
 	id, _ := c.Ctx.URLParamInt("id")
-	serverList := models.GetServerList()
 
-	var data = make(map[string]interface{})
-	if serverList == nil {
-		data["server"] = nil
-	} else {
-		if res, ok := serverList.(map[int]interface{})[id]; ok {
-			data["server"] = res
-		}
-	}
-
+	data := models.GetServerInfo(id)
+	fmt.Println(data)
 	return mvc.View{
 		Layout: "",
 		Name:   "server/upsert.html",
@@ -63,9 +70,10 @@ func (c *ServerController) PostUpsert() mvc.Result {
 	flag, _ := c.Ctx.PostValueInt("fg")
 	level, _ := c.Ctx.PostValueInt("lv")
 	id, _ := c.Ctx.PostValueInt("id")
+	ch, _ := c.Ctx.PostValueInt("ch")
 
 	serverRecord := models.ServerInfo{
-		Channel:  0,
+		Channel:  int32(ch),
 		Name:     serverName,
 		GateAddr: GateIP,
 		LogAddr:  LogIP,
@@ -210,13 +218,14 @@ func (c *ServerController) GetConfEdit() mvc.Result {
 	return mvc.View{
 		Layout: "",
 		Name:   "server/confEdit.html",
-		Data:   iris.Map{"login_srv_ip": config.LoginServerAddr, "gm_srv_ip": config.GmServerAddr},
+		Data:   iris.Map{"login_srv_ip": config.LoginServerAddr, "gm_srv_ip": config.GmServerAddr, "log_srv_ip": config.LogServerAddr},
 	}
 }
 
 func (c *ServerController) PostConfEdit() mvc.Result {
 	config.LoginServerAddr = c.Ctx.FormValue("login_srv_ip")
 	config.GmServerAddr = c.Ctx.FormValue("gm_srv_ip")
+	config.LogServerAddr = c.Ctx.FormValue("log_srv_ip")
 
 	return OpSuccess
 }
@@ -269,13 +278,104 @@ func (c *ServerController) GetOperateList() mvc.Result {
 	if err != nil {
 		limit = 30
 	}
-	realName := c.Ctx.URLParamTrim("realName")
-	logs := models.GetAllOpLogs(realName, "", page, limit)
+
+	uid, _ := c.Ctx.URLParamInt("uid")
+	logs := models.GetAllOpLogs(uid, "", page, limit)
 	ret := make(map[string]interface{})
 	ret["data"] = logs
 	ret["code"] = 0
 	ret["msg"] = ""
 	ret["count"] = models.GetLogsCount()
+	return mvc.Response{
+		Object: ret,
+	}
+}
+
+// 生成兑换码
+func (c *ServerController) GetCodeGen() mvc.Result {
+
+	// 下拉选择框
+	var data = make(map[string]interface{})
+	data["items"] = config.ItemConf
+	return mvc.View{
+		Layout: "",
+		Name:   "server/gencode.html",
+		Data:   data,
+	}
+
+}
+
+func (c *ServerController) PostCodeGen() string {
+
+	name := c.Ctx.PostValueTrim("name")
+	date := c.Ctx.PostValueTrim("date")
+	num, _ := c.Ctx.PostValueInt("num")
+	select_num, _ := c.Ctx.PostValueInt("select_num")
+	var attachment string = ""
+	for i := 0; i < select_num; i++ {
+
+		ctxKI := fmt.Sprintf("item_ids[%d]", i)
+		ctxKN := fmt.Sprintf("item_nums[%d]", i)
+
+		item_id, _ := c.Ctx.PostValueInt(ctxKI)
+		item_num, _ := c.Ctx.PostValueInt(ctxKN)
+		if item_id > 0 && item_num > 0 {
+			s := fmt.Sprintf("%d;%d|", item_id, item_num)
+			attachment += s
+		}
+	}
+	attachment = strings.TrimRight(attachment, "|")
+
+	cmd := make(map[string]interface{})
+	cmd["act"] = "gencode"
+	cmd["num"] = num
+	cmd["reward"] = attachment
+	cmd["name"] = name
+	cmd["date"] = date
+	body, _ := json.Marshal(cmd)
+	ret := models.PostGm("", body)
+	if _, ok := ret["data"]; !ok {
+		return ""
+	}
+
+	fileName := fmt.Sprintf("奖励兑换码-%s.csv", time.Now().Format("2006-01-02 15"))
+	c.Ctx.Header("Content-Type", "text/csv")
+	c.Ctx.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", fileName))
+
+	data := strings.ReplaceAll(ret["data"].(string), ",", "\n")
+	return data
+
+}
+
+// 礼包兑换码列表
+func (c *ServerController) GetCodeList() mvc.Result {
+
+	if !c.Ctx.IsAjax() {
+		return mvc.View{
+			Layout: "",
+			Name:   "server/codelist.html",
+		}
+	}
+
+	cmd := make(map[string]interface{})
+	cmd["act"] = "codelist"
+	body, _ := json.Marshal(cmd)
+	ret := models.PostGm("", body)
+
+	if data, ok := ret["data"]; ok {
+		return c.pageData(data, 0)
+	}
+
+	return c.pageData([]interface{}{}, 0)
+}
+
+func (c *ServerController) PostCodeDelete() mvc.Result {
+	id, _ := c.Ctx.PostValueInt("id")
+
+	status, msg := models.DeleteCode(id)
+	ret := make(map[string]interface{})
+	ret["status"] = status
+	ret["msg"] = msg
 	return mvc.Response{
 		Object: ret,
 	}

@@ -52,7 +52,7 @@ func (c *HomeController) GetIndex() mvc.Result {
 // 默认显示的标签页
 func (c *HomeController) GetMenu() mvc.Result {
 	return mvc.View{
-		Name:   "server/mail.html",
+		Name:   "home/index.html",
 		Layout: "",
 	}
 }

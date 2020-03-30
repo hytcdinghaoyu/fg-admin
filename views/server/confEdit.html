@@ -1,36 +1,49 @@
-<fieldset class="layui-elem-field layui-field-title">
-    <legend>修改服务器地址</legend>
-</fieldset>
-<form class="layui-form" action="" onsubmit="javascript;" name="form" method="post">
-    <div class="layui-form-item">
-        <label class="layui-form-label">登录服地址</label>
-        <div class="layui-input-inline">
-            <input type="text" name="login_srv_ip" id="source_name" lay-verify="required" autocomplete="off"
-                   class="layui-input" value="{{.login_srv_ip}}">
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">修改服务器地址</div>
+                <div class="layui-card-body" pad15>
+                    <form class="layui-form" action="" onsubmit="javascript;" name="form" method="post">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">登录服地址</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="login_srv_ip" id="source_name" lay-verify="required" autocomplete="off"
+                                       class="layui-input" value="{{.login_srv_ip}}">
+                            </div>
+                            <div class="layui-form-mid layui-word-aux">*</div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">Gm服地址</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="gm_srv_ip" id="source_name" lay-verify="required" autocomplete="off"
+                                       class="layui-input" value="{{.gm_srv_ip}}">
+                            </div>
+                            <div class="layui-form-mid layui-word-aux">*</div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">Log服地址</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="log_srv_ip" id="source_name" lay-verify="required" autocomplete="off"
+                                       class="layui-input" value="{{.log_srv_ip}}">
+                            </div>
+                            <div class="layui-form-mid layui-word-aux">*</div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="layui-form-mid layui-word-aux">*</div>
     </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label">Gm服地址</label>
-        <div class="layui-input-inline">
-            <input type="text" name="gm_srv_ip" id="source_name" lay-verify="required" autocomplete="off"
-                   class="layui-input" value="{{.gm_srv_ip}}">
-        </div>
-        <div class="layui-form-mid layui-word-aux">*</div>
-    </div>
-    <div class="layui-form-item">
-        <div class="layui-input-block">
-            <button class="layui-btn" lay-submit="" lay-filter="sub">保存</button>
-            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-        </div>
-    </div>
-</form>
+</div>
 {{ define "server/confEdit-script"}}
     <script>
-        var $;
-        layui.config({
-            base: "js/"
-        }).use(['form', 'element', 'layer', 'jquery'], function () {
+        layui.use(['form', 'jquery'], function () {
             var form = layui.form;
             var $ = layui.jquery;
             form.on('submit', function (data) {
