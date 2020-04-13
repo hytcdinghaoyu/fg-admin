@@ -1,0 +1,67 @@
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">GM命令</div>
+                <div class="layui-card-body" pad15>
+                    <form class="layui-form" action="" method="post">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" for="sid">服务器</label>
+                            <div class="layui-input-inline">
+                                <select name="sid" id="sid" lay-verify="required" lay-search="" style="width: 100%">
+                                    {{range $index,$elem := .serverList}}
+                                        <option value="{{$elem.id}}"> {{$elem.nm}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" for="uid">用户ID</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="uid" id="uid" lay-verify="required" autocomplete="off" placeholder="用户ID"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" for="cmd">命令</label>
+                            <div class="layui-input-inline" style="width: 400px">
+                                <input type="text" name="cmd" id="cmd" lay-verify="required" autocomplete="off" placeholder="GM命令"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit="" lay-filter="sub">发送</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ define "server/res-script"}}
+    <script>
+        layui.use(['form', 'jquery'], function () {
+            var form = layui.form;
+            var $ = layui.jquery;
+
+            form.on('submit(sub)', function (data) {
+                var form_data = data.field;
+                $.post('/server/res', form_data, function (out) {
+                    if (out.status === 0) {
+                        layer.msg("操作成功", {icon: 1}, function () {
+                            // window.location.href="/api/list";
+                        })
+                    } else {
+                        layer.msg(out.msg)
+                    }
+                }, "json");
+                return false;
+            });
+
+            form.render();
+        });
+    </script>
+{{end}}

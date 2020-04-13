@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fg-admin/config"
 	models "fg-admin/model"
 	"fmt"
 	"github.com/kataras/iris/v12/mvc"
@@ -188,4 +189,20 @@ func (c *MonitorController) GetFlow() mvc.Result {
 	req["limit"] = limit
 	list := models.GetLogFlow(req)
 	return c.pageData(list, len(list))
+}
+
+// 在线数
+func (c *MonitorController) GetPprof() mvc.Result {
+	sid, _ := c.Ctx.URLParamInt("sid")
+	serverName := c.Ctx.URLParamTrim("serverName")
+
+	data := map[string]interface{}{}
+	data["sid"] = float64(sid)
+	data["serverName"] = serverName
+	data["gmUrl"] = config.GmServerAddr
+
+	return mvc.View{
+		Name: "monitor/pprof.html",
+		Data: data,
+	}
 }

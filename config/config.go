@@ -51,7 +51,7 @@ func New() *toml.Tree {
 }
 
 func NewItemConf() []Item {
-	dat, err := ioutil.ReadFile("./upload/item.csv")
+	dat, err := ioutil.ReadFile("./upload/Item.csv")
 	if err != nil {
 		panic(err)
 	}

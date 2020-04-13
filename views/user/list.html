@@ -83,7 +83,7 @@
                 });
             }else if(obj.event === 'del'){
                 layer.confirm('真的删除【'+data.Name+'】用户么', function(index){
-                    var jsData = {'id':data.ID}
+                    var jsData = {'id':data.ID};
                     $.post('/user/delete', jsData, function (out) {
                         if (out.status == 0) {
                             layer.alert('删除成功了', {icon: 1},function(index){

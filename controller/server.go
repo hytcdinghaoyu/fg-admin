@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fg-admin/config"
+	"fg-admin/constant"
 	"fg-admin/model"
 	"fmt"
 	"github.com/kataras/iris/v12"
@@ -39,7 +40,8 @@ func (c *ServerController) GetStatus() mvc.Result {
 		}
 	}
 
-	list := models.GetServerStatus()
+	tp := c.Ctx.URLParamTrim("type")
+	list := models.GetServerStatus(tp)
 	return c.pageData(list, 0)
 }
 
@@ -91,6 +93,8 @@ func (c *ServerController) PostUpsert() mvc.Result {
 	ret := make(map[string]interface{})
 	ret["status"] = status
 	ret["msg"] = ""
+
+	models.MemCache.Delete(constant.CACHE_SERVER_LIST)
 	return mvc.Response{
 		Object: ret,
 	}
@@ -104,6 +108,7 @@ func (c *ServerController) PostDelete() mvc.Result {
 	ret := make(map[string]interface{})
 	ret["status"] = status
 	ret["msg"] = msg
+	models.MemCache.Delete(constant.CACHE_SERVER_LIST)
 	return mvc.Response{
 		Object: ret,
 	}
@@ -142,7 +147,44 @@ func (c *ServerController) PostCmd() mvc.Result {
 	cmd["type"] = tp
 	cmd["num"] = num
 	cmd["uid"] = uid
-	status, msg := models.GmCommand(cmd)
+	status, msg := models.GmCommand("/logic/res", cmd)
+
+	ret := make(map[string]interface{})
+	ret["status"] = status
+	ret["msg"] = msg
+	return mvc.Response{
+		Object: ret,
+	}
+}
+
+// GM命令页面渲染
+func (c *ServerController) GetRes() mvc.Result {
+
+	serverList := models.GetServerList()
+
+	var data = make(map[string]interface{})
+	if serverList != nil {
+		data["serverList"] = serverList
+	}
+
+	return mvc.View{
+		Layout: "",
+		Name:   "server/res.html",
+		Data:   data,
+	}
+}
+
+// GM发送命令
+func (c *ServerController) PostRes() mvc.Result {
+	sid, _ := c.Ctx.PostValueInt("sid")
+	cs := c.Ctx.PostValueTrim("cmd")
+	uid, _ := c.Ctx.PostValueInt("uid")
+
+	cmd := make(map[string]interface{})
+	cmd["sid"] = sid
+	cmd["cmd"] = cs
+	cmd["uid"] = uid
+	status, msg := models.GmCommand("/logic/gm", cmd)
 
 	ret := make(map[string]interface{})
 	ret["status"] = status
@@ -204,7 +246,7 @@ func (c *ServerController) PostMail() mvc.Result {
 	cmd["title"] = title
 	cmd["content"] = content
 	cmd["attachment"] = attachment
-	status, msg := models.GmCommand(cmd)
+	status, msg := models.GmCommand("/logic/mail", cmd)
 
 	ret := make(map[string]interface{})
 	ret["status"] = status
@@ -333,7 +375,7 @@ func (c *ServerController) PostCodeGen() string {
 	cmd["name"] = name
 	cmd["date"] = date
 	body, _ := json.Marshal(cmd)
-	ret := models.PostGm("", body)
+	ret := models.HttpPost(config.GmServerAddr, body)
 	if _, ok := ret["data"]; !ok {
 		return ""
 	}
@@ -360,7 +402,7 @@ func (c *ServerController) GetCodeList() mvc.Result {
 	cmd := make(map[string]interface{})
 	cmd["act"] = "codelist"
 	body, _ := json.Marshal(cmd)
-	ret := models.PostGm("", body)
+	ret := models.HttpPost(config.GmServerAddr, body)
 
 	if data, ok := ret["data"]; ok {
 		return c.pageData(data, 0)

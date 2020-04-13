@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fg-admin/config"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func GetOnlineCount(sid int, btime int64, etime int64) interface{} {
 		return nil
 	}
 
-	ret := PostGm("/server/online", body)
+	ret := HttpPost(config.GmServerAddr+"/server/online", body)
 	if _, ok := ret["data"]; ok {
 		return ret["data"]
 	}
@@ -85,7 +86,7 @@ func GetLogFlow(condition map[string]interface{}) []map[string]interface{} {
 		return nil
 	}
 
-	ret := PostLog("/gamelog/query", body)
+	ret := HttpPost(config.LogServerAddr+"/gamelog/query", body)
 	res := []map[string]interface{}{}
 
 	data := ret["data"]

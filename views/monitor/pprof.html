@@ -1,0 +1,58 @@
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">{{.serverName}}[{{.sid}}]</div>
+        <div class="layui-card-body">
+            <table lay-filter="profile">
+                <thead>
+                <tr>
+                    <th lay-data="{field:'pro'}">Profile</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=allocs&debug=1&sid={{.sid}}">allocs</a></td>
+                </tr>
+
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=block&debug=1&sid={{.sid}}">block</a></td>
+                </tr>
+
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=cmdline&sid={{.sid}}">cmdline</a></td>
+                </tr>
+
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=goroutine&debug=1&sid={{.sid}}">goroutine</a></td>
+                </tr>
+
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=heap&debug=1&sid={{.sid}}">heap</a></td>
+                </tr>
+
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=mutex&debug=1&sid={{.sid}}">mutex</a></td>
+                </tr>
+
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=threadcreate&debug=1&sid={{.sid}}">threadcreate</a></td>
+                </tr>
+
+                <tr>
+                    <td><a target="_blank" href="{{.gmUrl}}/logic/pprof?name=trace&sid={{.sid}}">trace</a></td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{{ define "monitor/pprof-script"}}
+    <script>
+
+        layui.use(['table', 'element'], function(){
+            var table = layui.table;
+            //方法级渲染
+            table.init('profile');
+        });
+    </script>
+{{end}}

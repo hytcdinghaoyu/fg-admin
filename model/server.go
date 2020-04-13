@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fg-admin/config"
 	"strconv"
 	"time"
 )
@@ -35,30 +36,34 @@ func GetServerName(stype, sid int32) string {
 	return ""
 }
 
-func GetServerStatus() interface{} {
-	ret := PostGm("/server/serverlist", []byte(``))
+func GetServerStatus(tp string) interface{} {
+	ret := HttpPost(config.GmServerAddr+"/server/serverlist", []byte(``))
 	serverMap := GetServerMap()
+	mLogic := []map[string]interface{}{}
+	mBattle := []map[string]interface{}{}
 	if data, ok := ret["data"]; ok {
 		if dataMap, ok := data.([]interface{}); ok {
 			for _, v := range dataMap {
 				if m, ok := v.(map[string]interface{}); ok {
-					m["ServerType"] = GetServerName(int32(m["Stype"].(float64)), int32(m["Sid"].(float64)))
-					m["StartTime"] = time.Unix(int64(m["StartTime"].(float64)), 0).Format("2006-01-02 15:04")
 
-					if nm, ok := serverMap[int32(m["Sid"].(float64))]; ok {
-						m["ServerName"] = nm
+					mt := m
+					mt["ServerType"] = GetServerName(int32(mt["Stype"].(float64)), int32(mt["Sid"].(float64)))
+					mt["StartTime"] = time.Unix(int64(mt["StartTime"].(float64)), 0).Format("2006-01-02 15:04")
+
+					if nm, ok := serverMap[int32(mt["Sid"].(float64))]; ok {
+						mt["ServerName"] = nm
 					}
 
-					if m["Time"].(float64) > 0 {
-						m["Status"] = "开启"
-					}else {
-						m["Status"] = "关闭"
+					if mt["Time"].(float64) > 0 {
+						mt["Status"] = "开启"
+					} else {
+						mt["Status"] = "关闭"
 					}
 
-					sec := time.Second * time.Duration(m["RunningTime"].(float64))
-					m["RunningTime"] = sec.String()
+					sec := time.Second * time.Duration(mt["RunningTime"].(float64))
+					mt["RunningTime"] = sec.String()
 
-					if connList, ok := m["ConnList"].([]interface{}); ok {
+					if connList, ok := mt["ConnList"].([]interface{}); ok {
 						ConnListName := []string{}
 						for _, vv := range connList {
 							if mm, ok := vv.(map[string]interface{}); ok {
@@ -66,14 +71,25 @@ func GetServerStatus() interface{} {
 								ConnListName = append(ConnListName, conName)
 							}
 						}
-						m["ConnListName"] = ConnListName
+						mt["ConnListName"] = ConnListName
+					}
+
+					stype := int(m["Stype"].(float64))
+					if stype == SERVER_TYPE_LOGIC {
+						mLogic = append(mLogic, mt)
+					}else if stype == SERVER_TYPE_BATTLE {
+						mBattle = append(mBattle, mt)
 					}
 
 				}
 			}
 		}
 
-		return data
+		if tp == "logic" {
+			return mLogic
+		}else if tp == "battle" {
+			return mBattle
+		}
 	}
 	return nil
 }

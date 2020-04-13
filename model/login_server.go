@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fg-admin/config"
 	"fg-admin/constant"
 )
 
@@ -25,9 +26,9 @@ type ServerInfo struct {
 
 func GetServerList() interface{} {
 
-	serverList, _ := MemCache.Get(constant.CACHE_SERVER_LIST)
-	if serverList == nil {
-		ret := PostLogin("/serverlist", []byte(`{"act": "select"}`))
+	serverList, ok := MemCache.Get(constant.CACHE_SERVER_LIST)
+	if !ok {
+		ret := HttpPost(config.LoginServerAddr+"/serverlist", []byte(`{"act": "select"}`))
 		if data, ok := ret["data"]; ok {
 			MemCache.Set(constant.CACHE_SERVER_LIST, data, -1)
 			return data
@@ -37,13 +38,13 @@ func GetServerList() interface{} {
 }
 
 func GetServerIds() []int32 {
-	serverList :=  GetServerList()
+	serverList := GetServerList()
 	list, ok := serverList.([]interface{})
 	ids := []int32{}
 	if ok {
 		for _, v := range list {
 			if m, ok := v.(map[string]interface{}); ok {
- 				ids = append(ids, int32(m["id"].(float64)))
+				ids = append(ids, int32(m["id"].(float64)))
 			}
 		}
 	}
@@ -51,7 +52,7 @@ func GetServerIds() []int32 {
 }
 
 func GetServerSelect() []map[string]interface{} {
-	serverList :=  GetServerList()
+	serverList := GetServerList()
 	list, ok := serverList.([]interface{})
 	ret := []map[string]interface{}{}
 	if ok {
@@ -69,7 +70,7 @@ func GetServerSelect() []map[string]interface{} {
 }
 
 func GetServerMap() map[int32]string {
-	serverList :=  GetServerList()
+	serverList := GetServerList()
 	list, ok := serverList.([]interface{})
 	ret := map[int32]string{}
 	if ok {
@@ -83,7 +84,7 @@ func GetServerMap() map[int32]string {
 }
 
 func GetServerInfo(sid int) map[string]interface{} {
-	serverList :=  GetServerList()
+	serverList := GetServerList()
 	list, ok := serverList.([]interface{})
 	ret := map[string]interface{}{}
 	if ok {
@@ -105,7 +106,7 @@ func UpsertServer(s ServerInfo) float64 {
 		return STATUS_OP_FAILED
 	}
 
-	ret := PostLogin("/serverlist", body)
+	ret := HttpPost(config.LoginServerAddr+"/serverlist", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64)
 	}
@@ -124,7 +125,7 @@ func DeleteServer(id int) (status float64, msg string) {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := PostLogin("/serverlist", body)
+	ret := HttpPost(config.LoginServerAddr+"/serverlist", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64), ret["msg"].(string)
 	}
@@ -133,14 +134,14 @@ func DeleteServer(id int) (status float64, msg string) {
 }
 
 // gm命令
-func GmCommand(cmd map[string]interface{}) (status float64, msg string) {
+func GmCommand(url string, cmd map[string]interface{}) (status float64, msg string) {
 
 	body, err := json.Marshal(cmd)
 	if err != nil {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := PostGm("", body)
+	ret := HttpPost(config.GmServerAddr+url, body)
 	if code, ok := ret["code"]; ok {
 		return code.(float64), ret["msg"].(string)
 	}

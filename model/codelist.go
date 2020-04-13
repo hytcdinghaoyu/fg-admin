@@ -1,6 +1,9 @@
 package models
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fg-admin/config"
+)
 
 type CodeList struct {
 	Id             int32         `json:"id" bson:"id"`
@@ -23,7 +26,7 @@ func DeleteCode(id int) (status float64, msg string) {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := PostGm("/", body)
+	ret := HttpPost(config.GmServerAddr+"/", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64), ret["msg"].(string)
 	}

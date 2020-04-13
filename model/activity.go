@@ -2,13 +2,14 @@ package models
 
 import (
 	"encoding/json"
+	"fg-admin/config"
 	"fmt"
 )
 
 const (
 	ACTIVITY_ID_COMMON = 0
 	ACTIVITY_ID_ASSIST = 1
-	ACTIVITY_ID_SCORE = 201
+	ACTIVITY_ID_SCORE  = 201
 )
 
 var ActivityMap = map[int32]string{ACTIVITY_ID_ASSIST: "英雄助战", ACTIVITY_ID_SCORE: "积分兑换-召唤", ACTIVITY_ID_COMMON: "通用配置"}
@@ -19,16 +20,16 @@ type ActivityCsvConfig struct {
 }
 
 type ActivityInfo struct {
-	Id        int32                `json:"id" bson:"id"`         // 自增ID
-	Ids       []int32              `json:"ids" bson:"-"`         // 更新使用
-	Sid       int32                `json:"sid" bson:"sid"`       // 服务器sid
-	Sids      []int32              `json:"sids" bson:"-"`        // 增加使用
-	Type      int32                `json:"type" bson:"type"`     // 活动类型
-	BeginTime string               `json:"bt" bson:"bt"`         // 开始时间
-	EndTime   string               `json:"et" bson:"et"`         // 结束时间
+	Id        int32               `json:"id" bson:"id"`         // 自增ID
+	Ids       []int32             `json:"ids" bson:"-"`         // 更新使用
+	Sid       int32               `json:"sid" bson:"sid"`       // 服务器sid
+	Sids      []int32             `json:"sids" bson:"-"`        // 增加使用
+	Type      int32               `json:"type" bson:"type"`     // 活动类型
+	BeginTime string              `json:"bt" bson:"bt"`         // 开始时间
+	EndTime   string              `json:"et" bson:"et"`         // 结束时间
 	Config    []ActivityCsvConfig `json:"config" bson:"config"` // 相关配置表
-	bTime     int64                                              // 开始时间
-	eTime     int64                                              // 结束时间
+	bTime     int64                                             // 开始时间
+	eTime     int64                                             // 结束时间
 }
 
 type ActivityQueryCondition struct {
@@ -70,7 +71,7 @@ func CreateActivity(a ActivityInfo) (status float64, msg string) {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := PostGm("/activity/add", body)
+	ret := HttpPost(config.GmServerAddr+"/activity/add", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64), ret["msg"].(string)
 	}
@@ -89,7 +90,7 @@ func UpdateActivity(a ActivityInfo) (status float64, msg string) {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := PostGm("/activity/update", body)
+	ret := HttpPost(config.GmServerAddr+"/activity/update", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64), ret["msg"].(string)
 	}
@@ -106,7 +107,7 @@ func DeleteActivity(ids []int32) (status float64, msg string) {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := PostGm("/activity/delete", body)
+	ret := HttpPost(config.GmServerAddr+"/activity/delete", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64), ret["msg"].(string)
 	}
@@ -123,7 +124,7 @@ func LoadActivity(ids []int32) (status float64, msg string) {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := PostGm("/activity/load", body)
+	ret := HttpPost(config.GmServerAddr+"/activity/load", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64), ret["msg"].(string)
 	}
