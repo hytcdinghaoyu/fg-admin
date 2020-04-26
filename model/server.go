@@ -16,6 +16,18 @@ const (
 	SERVER_TYPE_LOGIN  = 7 // 登陆服
 )
 
+var (
+	MServerType = map[int32]string{
+		SERVER_TYPE_GATE:   "网关服",
+		SERVER_TYPE_LOGIC:  "逻辑服",
+		SERVER_TYPE_BATTLE: "战斗服",
+		SERVER_TYPE_MGR:    "管理服",
+		SERVER_TYPE_LOG:    "日志服",
+		SERVER_TYPE_GM:     "GM服",
+		SERVER_TYPE_LOGIN:  "登录服",
+	}
+)
+
 func GetServerName(stype, sid int32) string {
 	switch stype {
 	case SERVER_TYPE_GATE:
@@ -54,8 +66,12 @@ func GetServerStatus(tp string) interface{} {
 						mt["ServerName"] = nm
 					}
 
-					if mt["Time"].(float64) > 0 {
-						mt["Status"] = "开启"
+					if t, ok := mt["Time"].(float64); ok {
+						if t > 0 {
+							mt["Status"] = "开启"
+						} else {
+							mt["Status"] = "关闭"
+						}
 					} else {
 						mt["Status"] = "关闭"
 					}
@@ -77,7 +93,7 @@ func GetServerStatus(tp string) interface{} {
 					stype := int(m["Stype"].(float64))
 					if stype == SERVER_TYPE_LOGIC {
 						mLogic = append(mLogic, mt)
-					}else if stype == SERVER_TYPE_BATTLE {
+					} else if stype == SERVER_TYPE_BATTLE {
 						mBattle = append(mBattle, mt)
 					}
 
@@ -87,7 +103,7 @@ func GetServerStatus(tp string) interface{} {
 
 		if tp == "logic" {
 			return mLogic
-		}else if tp == "battle" {
+		} else if tp == "battle" {
 			return mBattle
 		}
 	}

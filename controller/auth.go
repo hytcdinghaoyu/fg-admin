@@ -14,7 +14,8 @@ type AuthController struct {
 func (c *AuthController) GetList() mvc.Result {
 
 	if !c.Ctx.IsAjax() {
-		authList := models.GetAllPermissions("", "", 1, 1000)
+		authList := models.GetAllPermissions("", "sort ASC", 1, 1000)
+
 		var menuList []models.Permission
 		for _, v := range authList {
 			if v.Pid == 0 {
@@ -47,7 +48,7 @@ func (c *AuthController) GetList() mvc.Result {
 
 func (c *AuthController) PostTree() mvc.Result {
 
-	authList := models.GetAllPermissions("", "", 1, 1000)
+	authList := models.GetAllPermissions("", "sort ASC", 1, 1000)
 	list := make(map[int]map[string]interface{}, len(authList))
 	for _, v := range authList {
 		row := make(map[string]interface{})
@@ -96,6 +97,7 @@ func (c *AuthController) PostNode() mvc.Result {
 	row["sort"] = result.IsShow
 	row["is_show"] = result.IsShow
 	row["icon"] = result.Icon
+	row["sort"] = result.Sort
 
 	return c.pageData(row, len(row))
 }
@@ -111,6 +113,7 @@ func (c *AuthController) PostUpsert() mvc.Result {
 	// auth.Sort, _ = self.GetInt("sort")
 	auth.IsShow, _ = c.Ctx.PostValueInt("is_show")
 	auth.Icon = c.Ctx.PostValueTrim("icon")
+	auth.Sort, _ = c.Ctx.PostValueInt("sort")
 
 	if id > 0 {
 		models.UpdatePermission(auth, uint(id))

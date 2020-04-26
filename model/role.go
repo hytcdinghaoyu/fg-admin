@@ -16,7 +16,8 @@ func GetPermsByRoleId(id uint) []Permission {
 	var permission []Permission
 	role := Role{}
 	DB.First(&role, "id = ?", id)
-	DB.Model(&role).Related(&permission,  "Perms")
+	DB.Model(&role).Order("sort ASC").Related(&permission,  "Perms")
+
 	return  permission
 }
 

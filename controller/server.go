@@ -1,14 +1,17 @@
 package controller
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fg-admin/config"
 	"fg-admin/constant"
 	"fg-admin/model"
+	"fg-admin/utils"
 	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -55,7 +58,6 @@ func (c *ServerController) GetUpsert() mvc.Result {
 	id, _ := c.Ctx.URLParamInt("id")
 
 	data := models.GetServerInfo(id)
-	fmt.Println(data)
 	return mvc.View{
 		Layout: "",
 		Name:   "server/upsert.html",
@@ -418,6 +420,130 @@ func (c *ServerController) PostCodeDelete() mvc.Result {
 	ret := make(map[string]interface{})
 	ret["status"] = status
 	ret["msg"] = msg
+	return mvc.Response{
+		Object: ret,
+	}
+}
+
+func (c *ServerController) GetCsv() mvc.Result {
+	if !c.Ctx.IsAjax() {
+		return mvc.View{
+			Layout: "",
+			Name:   "server/csv.html",
+		}
+	}
+
+	cmd := make(map[string]interface{})
+	body, _ := json.Marshal(cmd)
+	ret := models.HttpPost(config.GmServerAddr+"/csv/getlist", body)
+
+	if data, ok := ret["data"]; ok {
+		if dataSli, ok := data.([]interface{}); ok {
+			for _, v := range dataSli {
+				if m, ok := v.(map[string]interface{}); ok {
+					tm := time.Unix(int64(m["time"].(float64)), 0)
+					m["time"] = tm.Format("2006-01-02 15:04:05")
+
+					if stype, ok := models.MServerType[int32(m["stype"].(float64))]; ok {
+						m["stype"] = stype
+					}
+				}
+			}
+		}
+
+		return c.pageData(data, 0)
+	}
+	return c.pageData([]interface{}{}, 0)
+}
+
+func (c *ServerController) GetCsvUpsert() mvc.Result {
+	data := map[string]interface{}{}
+	data["upload_key"] = utils.RandString(8)
+	return mvc.View{
+		Layout: "",
+		Name:   "server/upsertCsv.html",
+		Data:   data,
+	}
+}
+
+func (c *ServerController) PostCsvUpsert() mvc.Result {
+	sids := c.Ctx.PostValueTrim("sids")
+	battle_sids := c.Ctx.PostValueTrim("battle_sids")
+	stype, _ := c.Ctx.PostValueInt("stype")
+	upload_key := c.Ctx.PostValueTrim("upload_key")
+
+	if sids != "" {
+		sids = strings.ReplaceAll(sids, ",", "|")
+	}
+
+	if stype == models.SERVER_TYPE_BATTLE {
+		sids = battle_sids
+	}
+
+	cmd := map[string]interface{}{}
+	content, ok := models.MemCache.Get(upload_key + "content")
+	if ok {
+		cmd["content"] = content
+	}
+
+	name, ok := models.MemCache.Get(upload_key + "name")
+	if ok {
+		cmd["name"] = name
+	}
+
+	cmd["sids"] = sids
+	cmd["stype"] = stype
+
+	body, err := json.Marshal(cmd)
+	if err != nil {
+		return mvc.Response{
+			Object: nil,
+		}
+	}
+
+	ret := models.HttpPost(config.GmServerAddr+"/csv/upsert", body)
+
+	return mvc.Response{
+		Object: ret,
+	}
+}
+
+func (c *ServerController) PostCsvUpload() mvc.Result {
+	file, info, err := c.Ctx.FormFile("file")
+	upload_key := c.Ctx.PostValueTrim("upload_key")
+	if err != nil {
+		return c.fireError(err)
+	}
+
+	rBuf, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println("[read gzip data err]: ", err)
+	}
+
+	// encode
+	content := base64.RawStdEncoding.EncodeToString(rBuf)
+	models.MemCache.Set(upload_key+"content", content, time.Second*300)
+	models.MemCache.Set(upload_key+"name", info.Filename, time.Second*300)
+
+	return OpSuccess
+}
+
+func (c *ServerController) PostCsvLoad() mvc.Result {
+
+	ret := models.HttpPost(config.GmServerAddr+"/csv/load", nil)
+	return mvc.Response{
+		Object: ret,
+	}
+}
+
+func (c *ServerController) PostCsvDelete() mvc.Result {
+
+	id, _ := c.Ctx.PostValueInt("id")
+
+	cmd := map[string]interface{}{}
+	cmd["id"] = id
+	body, _ := json.Marshal(cmd)
+	ret := models.HttpPost(config.GmServerAddr+"/csv/delete", body)
 	return mvc.Response{
 		Object: ret,
 	}

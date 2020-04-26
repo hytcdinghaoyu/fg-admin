@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fg-admin/config"
 	"fg-admin/constant"
 	"fg-admin/model"
 	"github.com/kataras/iris/v12"
@@ -45,7 +46,7 @@ func (c *HomeController) GetIndex() mvc.Result {
 
 	return mvc.View{
 		Name: "public/menu.html",
-		Data: iris.Map{"MainMenu": mainMenu, "SubMenu": subMenu, "SiteName": "FG-ADMIN", "Username": username},
+		Data: iris.Map{"MainMenu": mainMenu, "SubMenu": subMenu, "SiteName": config.Conf.Get("app.name"), "Username": username},
 	}
 }
 

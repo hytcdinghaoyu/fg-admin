@@ -1,0 +1,87 @@
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header layuiadmin-card-header-auto">
+                    <form action="" class="layui-form layui-form-pane" method="post">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">日期</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="date" class="layui-input" id="date-range" placeholder=" - " value="{{.date}}">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <button type="button" class="layui-btn" data-type="reload">查询</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="table_list" lay-filter="table_filter">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{{ define "monitor/clog-script"}}
+    <script>
+        layui.use(['laydate', 'jquery', 'form', 'table'], function () {
+            var laydate = layui.laydate;
+            var form = layui.form;
+            var $ = layui.jquery;
+            var table = layui.table;
+
+
+            //方法级渲染
+            table.render({
+                elem: '#table_list'
+                , url: '/monitor/clientlog'
+                , cols: [[
+                    {field: 'name', title: '日志名'}
+                    , {field: 'Count', title: '数量'}
+                ]]
+                , id: 'listReload'
+                , height: "full-130"
+            });
+
+            //日期时间范围
+            laydate.render({
+                elem: '#date-range'
+                , type: 'date'
+                , range: true
+            });
+
+            var active = {
+                //根据条件查询
+                reload: function () {
+                    table.reload('listReload', {
+                        where: {
+                            date: $("#date-range").val()
+                        }
+                    });
+                }
+            };
+
+
+            $('.layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+
+            form.render()
+
+        });
+
+
+    </script>
+{{end}}

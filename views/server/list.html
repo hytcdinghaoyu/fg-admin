@@ -1,19 +1,5 @@
 <div class="layui-fluid">
     <div class="layui-card">
-
-{{/*        <div class="layui-form layui-card-header layuiadmin-card-header-auto">*/}}
-{{/*            <div class="layui-form-item">*/}}
-{{/*                <div class="layui-inline">*/}}
-{{/*                    <input class="layui-input" name="realName" id="realName" autocomplete="off"*/}}
-{{/*                           placeholder="服务器名">*/}}
-{{/*                </div>*/}}
-{{/*                <div class="layui-inline">*/}}
-{{/*                    <button class="layui-btn layuiadmin-btn-useradmin" data-type="reload" lay-submit lay-filter="LAY-user-front-search">*/}}
-{{/*                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>*/}}
-{{/*                    </button>*/}}
-{{/*                </div>*/}}
-{{/*            </div>*/}}
-{{/*        </div>*/}}
         <div class="layui-card-body">
             <div style="padding-bottom: 10px;">
                 <button class="layui-btn" data-type="add">新增</button>
@@ -21,7 +7,6 @@
             <table class="layui-hide" id="table_list" lay-filter="table_filter">
             </table>
             <script type="text/html" id="bar">
-                <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="mail">发邮件</a>
                 <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
                 <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
             </script>
@@ -88,7 +73,7 @@
                 });
             } else if(obj.event === 'del'){
                 layer.confirm('真的删除【'+data.nm+'】服务器么', function(index){
-                    var jsData = {'id':data.id}
+                    var jsData = {'id':data.id};
                     $.post('/server/delete', jsData, function (out) {
                         if (out.status == 0) {
                             layer.alert('删除成功了', {icon: 1},function(index){

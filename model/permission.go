@@ -13,6 +13,7 @@ type Permission struct {
 	Pid         int    `gorm:"smallint"`
 	Icon        string `gorm:"VARCHAR(20)"`
 	IsShow      int    `gorm:"smallint"`
+	Sort        int    `gorm:"smallint"`
 }
 
 // 通过 id 获取 permission 记录

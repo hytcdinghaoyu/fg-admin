@@ -111,14 +111,14 @@ func New() *gorm.DB {
 
 func GetAll(string, orderBy string, page, limit int) *gorm.DB {
 	TDB := DB
-	if len(orderBy) > 0 {
-		TDB = TDB.Order(orderBy + "desc")
-	} else {
-		TDB = TDB.Order("created_at desc")
-	}
-
 	if len(string) > 0 {
 		TDB = TDB.Where("name LIKE  ?", "%"+string+"%")
+	}
+
+	if len(orderBy) > 0 {
+		TDB = TDB.Order(orderBy)
+	} else {
+		TDB = TDB.Order("created_at desc")
 	}
 
 	if page > 0 {
@@ -129,5 +129,5 @@ func GetAll(string, orderBy string, page, limit int) *gorm.DB {
 		TDB = TDB.Limit(limit)
 	}
 
-	return TDB
+	return TDB.Debug()
 }

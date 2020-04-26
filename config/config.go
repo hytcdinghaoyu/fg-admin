@@ -12,11 +12,14 @@ import (
 )
 
 var (
-	Conf     = New()
-	ItemConf = NewItemConf()
+	Conf            = New()
+	ItemConf        = NewItemConf()
+	ItemConfMap     = make(map[int]string)
+	HeroConfMap     = NewConfMap("HeroMain", 23)
+	EquipConfMap    = NewConfMap("Equip", 1)
 	LoginServerAddr = Conf.Get("login_server.host").(string)
-	GmServerAddr = Conf.Get("gm_server.host").(string)
-	LogServerAddr = Conf.Get("log_server.host").(string)
+	GmServerAddr    = Conf.Get("gm_server.host").(string)
+	LogServerAddr   = Conf.Get("log_server.host").(string)
 )
 
 type JwtClaims struct {
@@ -31,6 +34,7 @@ type UserInfo struct {
 	AuthStr  string
 }
 
+// 道具配表
 type Item struct {
 	ID   int
 	Name string
@@ -75,7 +79,40 @@ func NewItemConf() []Item {
 
 		i := Item{ID: id, Name: record[1]}
 		sliItem = append(sliItem, i)
+
+		ItemConfMap[id] = record[1]
 	}
 
 	return sliItem
+}
+
+func NewConfMap(name string, offset int) map[int]string {
+
+	path := fmt.Sprintf("./upload/%s.csv", name)
+	dat, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	r := csv.NewReader(strings.NewReader(string(dat[:])))
+
+	m := map[int]string{}
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+
+		id, err := strconv.Atoi(record[0])
+		if id == 0 {
+			continue
+		}
+
+		if err != nil {
+			panic(err)
+		}
+
+		m[id] = record[offset]
+	}
+
+	return m
 }

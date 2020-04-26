@@ -61,7 +61,7 @@ func GetServerSelect() []map[string]interface{} {
 				s := map[string]interface{}{}
 				s["value"] = int32(m["id"].(float64))
 				s["name"] = m["nm"].(string)
-				s["selected"] = true
+				s["selected"] = false
 				ret = append(ret, s)
 			}
 		}

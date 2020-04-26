@@ -102,7 +102,7 @@
                     <table lay-filter="hero">
                         <thead>
                         <tr>
-                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'id'}">名称</th>
                             <th lay-data="{field:'level'}">等级</th>
                             <th lay-data="{field:'star'}">星级</th>
                         </tr>
@@ -110,7 +110,7 @@
                         <tbody>
                         {{range $v := .data.hero}}
                             <tr>
-                                <td>{{$v.i}}</td>
+                                <td>{{$v.name}}</td>
                                 <td>{{$v.l}}</td>
                                 <td>{{$v.s}}</td>
                             </tr>
@@ -129,7 +129,7 @@
                     <table lay-filter="pet">
                         <thead>
                         <tr>
-                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'id'}">名称</th>
                             <th lay-data="{field:'level'}">等级</th>
                             <th lay-data="{field:'star'}">星级</th>
                         </tr>
@@ -137,7 +137,7 @@
                         <tbody>
                         {{range $vv := .data.pet}}
                             <tr>
-                                <td>{{$vv.i}}</td>
+                                <td>{{$vv.name}}</td>
                                 <td>{{$vv.l}}</td>
                                 <td>{{$vv.s}}</td>
                             </tr>
@@ -156,14 +156,14 @@
                     <table lay-filter="item">
                         <thead>
                         <tr>
-                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'nm'}">名称</th>
                             <th lay-data="{field:'count'}">数量</th>
                         </tr>
                         </thead>
                         <tbody>
                         {{range $v := .data.item}}
                             <tr>
-                                <td>{{$v.i}}</td>
+                                <td>{{$v.name}}</td>
                                 <td>{{$v.c}}</td>
                             </tr>
                         {{end}}
@@ -183,14 +183,14 @@
                     <table lay-filter="equip">
                         <thead>
                         <tr>
-                            <th lay-data="{field:'id'}">ID</th>
+                            <th lay-data="{field:'id'}">名称</th>
                             <th lay-data="{field:'level'}">Index</th>
                         </tr>
                         </thead>
                         <tbody>
                         {{range $v := .data.equip}}
                             <tr>
-                                <td>{{$v.i}}</td>
+                                <td>{{$v.name}}</td>
                                 <td>{{$v.d}}</td>
                             </tr>
                         {{end}}

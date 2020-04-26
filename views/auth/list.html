@@ -91,9 +91,6 @@
             </div>
         </div>
     </div>
-    <div id="menuContent" class="menuContent" style="display:none; position: absolute;">
-        <div id="treeMenu" class="ztree" style="margin-top:0; width:200px; height: 200px"></div>
-    </div>
 </div>
 
 {{ define "auth/list-script"}}
@@ -139,11 +136,12 @@
                     }
 
                     zNodes = data.data;
-                    tree.render({elem: '#treeMenu', data: zNodes});
+
                     tree.render({
                         elem: '#lay-tree'
                         , data: zNodes //数据源
                         , id: 'id' //定义索引
+                        , onlyIconControl: true
                         , click: function (obj) {
                             $.ajax({
                                 type: "POST",
@@ -159,10 +157,12 @@
 
                                     if (zNodes[pid] === undefined) {
                                         // layer.msg("一级菜单无法修改");
-                                        return false;
+                                        pname = "顶级权限"
+                                    }else{
+                                        pname = zNodes[pid].title;
                                     }
 
-                                    pname = zNodes[pid].title;
+
                                     $("#pid").val(pid);
                                     $("#id").val(obj.data.id);
                                     $("#pname").val(pname);
@@ -175,6 +175,8 @@
                                     $("form[name=form]").find("input[type=radio][value=" + is_show + "]").attr("checked", true);
                                     $("form[name=form]").find("input[type=radio][value=" + is_show + "]").click();
                                     form.render();
+
+                                    $(window).scrollTop(0);
                                 }
                             });
                         }

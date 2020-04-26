@@ -3,7 +3,6 @@ package controller
 import (
 	"fg-admin/model"
 	"fg-admin/utils"
-	"fmt"
 	"github.com/kataras/iris/v12/mvc"
 	"io/ioutil"
 	"strings"
@@ -45,7 +44,8 @@ func (c *SeasonController) GetList() mvc.Result {
 	if sids != "" {
 		condition.Sids = utils.StrSplit(sids, ",")
 	} else {
-		condition.Sids = models.GetServerIds()
+		// condition.Sids = models.GetServerIds()
+		condition.Sids = []int32{}
 	}
 
 	condition.State = int32(status)
@@ -133,7 +133,6 @@ func (c *SeasonController) PostUpsert() mvc.Result {
 	ret := make(map[string]interface{})
 	ret["status"] = status
 	ret["msg"] = msg
-	fmt.Println(ret)
 	return mvc.Response{
 		Object: ret,
 	}

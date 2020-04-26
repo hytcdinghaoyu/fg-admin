@@ -61,5 +61,6 @@ func basicMVC(app *mvc.Application) {
 	app.Party("/auth").Handle(new(controller.AuthController))
 	app.Party("/season").Handle(new(controller.SeasonController))
 	app.Party("/monitor").Handle(new(controller.MonitorController))
+	app.Party("/words").Handle(new(controller.WordsController))
 
 }

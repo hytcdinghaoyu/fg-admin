@@ -7,23 +7,17 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">活动类型</label>
-            <div class="layui-input-inline">
-                <select name="activity_type" id="activity_type" lay-search="">
-                    {{range $k, $v := .activity_map}}
-                        <option value="{{$k}}"> {{$v}}</option>
-                    {{end}}
-                </select>
+            <label class="layui-form-label" for="stype">类型</label>
+            <div class="layui-input-block">
+                <div id="stype"></div>
             </div>
-            <div class="layui-form-mid layui-word-aux">*</div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">时间范围</label>
-            <div class="layui-input-inline" style="width: 40%">
-                <input type="text" name="date-range" class="layui-input" id="date-range" placeholder=" - "
-                       value="{{.date_range}}">
+            <label class="layui-form-label">战斗服SID</label>
+            <div class="layui-input-block">
+                <input type="text" name="battle_sids" lay-verify="required" autocomplete="off"
+                       class="layui-input" placeholder="多个sid用|分割">
             </div>
-            <div class="layui-form-mid layui-word-aux">*</div>
         </div>
         <div class="layui-form-item">
             <div class="layui-upload">
@@ -51,13 +45,12 @@
         </div>
     </form>
 </div>
-{{ define "season/upsert-script"}}
+{{ define "server/upsertCsv-script"}}
     <script src="/static/xm-select/dist/xm-select.js"></script>
     <script>
-        layui.use(['form', 'jquery', 'laydate', 'upload'], function () {
+        layui.use(['form', 'jquery', 'upload'], function () {
             var form = layui.form;
             var $ = layui.jquery;
-            var laydate = layui.laydate;
             var upload = layui.upload;
 
             //多文件上传
@@ -65,9 +58,9 @@
             var demoListView = $('#demoList')
                 , uploadListIns = upload.render({
                 elem: '#testList'
-                , url: '/season/upload' //改成您自己的上传接口
+                , url: '/server/csv/upload'
                 , accept: 'file'
-                , exts: 'csv'
+                , exts: 'gz'
                 , multiple: true
                 , auto: false
                 , bindAction: '#testListAction'
@@ -121,7 +114,7 @@
 
             form.on('submit(sub)', function (data) {
                 var form_data = data.field;
-                $.post('/season/upsert', form_data, function (out) {
+                $.post('/server/csv/upsert', form_data, function (out) {
                     if (out.status == 0) {
                         layer.msg("操作成功", {icon: 1}, function () {
                             window.parent.layer.closeAll();
@@ -132,13 +125,6 @@
                     }
                 }, "json");
                 return false;
-            });
-
-            //日期时间范围
-            laydate.render({
-                elem: '#date-range'
-                , type: 'datetime'
-                , range: true
             });
 
             //表单渲染
@@ -154,6 +140,7 @@
         });
 
         var selectSid = xmSelect.render({
+            name: 'sids',
             el: '#sid',
             filterable: true,
             toolbar: {
@@ -161,6 +148,17 @@
             },
             autoRow: true,
             data: [],
+        });
+
+        var selectStype = xmSelect.render({
+            name: 'stype',
+            el: '#stype',
+            radio: true,
+            clickClose: true,
+            data: [
+                {name: '逻辑服', value: 2, selected: false},
+                {name: '战斗服', value: 3},
+            ],
         })
     </script>
 {{end}}

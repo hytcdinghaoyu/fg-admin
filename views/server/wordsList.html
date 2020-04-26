@@ -1,0 +1,91 @@
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">添加屏蔽字</div>
+                <div class="layui-card-body" pad15>
+                    <form class="layui-form" action="" method="post">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" for="words">屏蔽字</label>
+                            <div class="layui-input-block" style="width: 80%">
+                                <textarea type="text" name="words" id="words" lay-verify="required" autocomplete="off" class="layui-textarea"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit="" lay-filter="sub">添加</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-form layui-form-pane layui-card-header layuiadmin-card-header-auto">
+                    <div class="layui-form-item">
+                        <button class="layui-btn layui-btn-danger" data-type="remove">清除</button>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <form class="layui-form" action="" method="post">
+                        <div class="layui-form-item">
+                            <div class="layui-input-block" style="width: 80%">
+                                <textarea type="text" name="words" class="layui-textarea" disabled>{{.words}}</textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ define "server/wordsList-script"}}
+    <script src="/static/xm-select/dist/xm-select.js"></script>
+    <script>
+        layui.use(['form'], function () {
+            var form = layui.form;
+
+            form.on('submit(sub)', function (data) {
+                var form_data = data.field;
+                $.post('/words/upsert', form_data, function (out) {
+                    if (out.code === 0) {
+                        layer.msg("操作成功", {icon: 1}, function () {
+                            window.location.reload()
+                        })
+                    } else {
+                        layer.msg(out.msg)
+                    }
+                }, "json");
+                return false;
+            });
+
+            var $ = layui.$, active = {
+                remove: function () {
+                    layer.confirm('确定清除吗', function (index) {
+                        var jsData = {};
+                        $.post('/words/clear', jsData, function (out) {
+                            if (out.code == 0) {
+                                layer.alert(out.msg, {icon: 1}, function (index) {
+                                    layer.close(index);
+                                });
+                                window.location.reload()
+                            } else {
+                                layer.msg(out.msg)
+                            }
+                        }, "json");
+                        layer.close(index);
+                    });
+                }
+            };
+
+            $('.layui-form .layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+
+        });
+
+    </script>
+{{end}}
