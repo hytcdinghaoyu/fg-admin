@@ -26,7 +26,7 @@ func DeleteCode(id int) (status float64, msg string) {
 		return STATUS_OP_FAILED, MSG_OP_FIALED
 	}
 
-	ret := HttpPost(config.GmServerAddr+"/", body)
+	ret := HttpPost(config.GmServerAddr+"/code/delcode", body)
 	if val, ok := ret["code"]; ok {
 		return val.(float64), ret["msg"].(string)
 	}

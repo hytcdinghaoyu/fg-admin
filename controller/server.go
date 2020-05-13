@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -222,10 +223,11 @@ func (c *ServerController) GetMail() mvc.Result {
 
 // GM发送邮件
 func (c *ServerController) PostMail() mvc.Result {
-	sid, _ := c.Ctx.PostValueInt("sid")
+	sid := c.Ctx.PostValueTrim("sid")
 	uid := c.Ctx.PostValueTrim("uid")
 	title := c.Ctx.PostValueTrim("title")
 	content := c.Ctx.PostValueTrim("content")
+	sw := c.Ctx.PostValueTrim("switch")
 	select_num, _ := c.Ctx.PostValueInt("select_num")
 
 	var attachment string = ""
@@ -242,13 +244,33 @@ func (c *ServerController) PostMail() mvc.Result {
 	attachment = strings.TrimRight(attachment, "|")
 
 	cmd := make(map[string]interface{})
-	cmd["act"] = "mail"
 	cmd["sid"] = sid
 	cmd["uid"] = uid
 	cmd["title"] = title
 	cmd["content"] = content
 	cmd["attachment"] = attachment
-	status, msg := models.GmCommand("/logic/mail", cmd)
+
+	var status float64
+	var msg string
+	smap := models.GetServerMap()
+	if sw == "on" {
+		sidSli := strings.Split(sid, ",")
+		for _, sid := range sidSli {
+			cmd["sid"] = sid
+			var smsg string
+			sidi, _ := strconv.Atoi(sid)
+			if sname, ok := smap[int32(sidi)]; ok {
+				_, smsg = models.GmCommand("/logic/globalmail", cmd)
+				fmgs := fmt.Sprintf("[%s]:%s<br>", sname ,smsg)
+				msg += fmgs
+			}
+
+		}
+
+	}else{
+		status, msg = models.GmCommand("/logic/mail", cmd)
+	}
+
 
 	ret := make(map[string]interface{})
 	ret["status"] = status
@@ -271,6 +293,7 @@ func (c *ServerController) PostConfEdit() mvc.Result {
 	config.GmServerAddr = c.Ctx.FormValue("gm_srv_ip")
 	config.LogServerAddr = c.Ctx.FormValue("log_srv_ip")
 
+	models.MemCache.Delete(constant.CACHE_SERVER_LIST)
 	return OpSuccess
 }
 
@@ -371,23 +394,29 @@ func (c *ServerController) PostCodeGen() string {
 	attachment = strings.TrimRight(attachment, "|")
 
 	cmd := make(map[string]interface{})
-	cmd["act"] = "gencode"
 	cmd["num"] = num
 	cmd["reward"] = attachment
 	cmd["name"] = name
 	cmd["date"] = date
 	body, _ := json.Marshal(cmd)
-	ret := models.HttpPost(config.GmServerAddr, body)
+	ret := models.HttpPost(config.GmServerAddr+"/code/gencode", body)
 	if _, ok := ret["data"]; !ok {
 		return ""
+	}else{
+		fmt.Println(ret)
 	}
 
 	fileName := fmt.Sprintf("奖励兑换码-%s.csv", time.Now().Format("2006-01-02 15"))
 	c.Ctx.Header("Content-Type", "text/csv")
 	c.Ctx.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", fileName))
 
-	data := strings.ReplaceAll(ret["data"].(string), ",", "\n")
-	return data
+
+	if data, ok := ret["data"]; ok && data != nil {
+		data := strings.ReplaceAll(data.(string), ",", "\n")
+		return data
+	}
+
+	return ""
 
 }
 
@@ -404,7 +433,7 @@ func (c *ServerController) GetCodeList() mvc.Result {
 	cmd := make(map[string]interface{})
 	cmd["act"] = "codelist"
 	body, _ := json.Marshal(cmd)
-	ret := models.HttpPost(config.GmServerAddr, body)
+	ret := models.HttpPost(config.GmServerAddr+"/code/codelist", body)
 
 	if data, ok := ret["data"]; ok {
 		return c.pageData(data, 0)

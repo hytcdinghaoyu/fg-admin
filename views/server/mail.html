@@ -6,22 +6,39 @@
                 <div class="layui-card-body" pad15>
                     <form class="layui-form" action="" method="post">
                         <div class="layui-form-item">
-                            <label class="layui-form-label" for="sid">服务器</label>
-                            <div class="layui-input-inline">
-                                <select name="sid" id="sid" lay-verify="required" lay-search="" style="width: 100%">
-                                    {{range $index,$elem := .serverList}}
-                                        <option value="{{$elem.id}}" {{if eq $elem.id $.sid}} selected {{end}}>{{$elem.nm}}</option>
-                                    {{end}}
-                                </select>
+                            <label class="layui-form-label">全服</label>
+                            <div class="layui-input-block">
+                                <input type="checkbox" name="switch" lay-skin="switch" lay-filter="sw">
                             </div>
                         </div>
-                        <div class="layui-form-item">
-                            <label class="layui-form-label" for="uid">用户ID</label>
-                            <div class="layui-input-block" style="width: 80%">
-                                <input type="text" name="uid" id="uid" lay-verify="required" autocomplete="off"
-                                       placeholder="用户ID(支持多个|分割)" class="layui-input">
+                        <div id="panel-single">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" for="sid">服务器</label>
+                                <div class="layui-input-inline">
+                                    <select name="sid" id="sid" lay-search="" style="width: 100%">
+                                        {{range $index,$elem := .serverList}}
+                                            <option value="{{$elem.id}}" {{if eq $elem.id $.sid}} selected {{end}}>{{$elem.nm}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" for="uid">用户ID</label>
+                                <div class="layui-input-block" style="width: 80%">
+                                    <input type="text" name="uid" id="uid" autocomplete="off"
+                                           placeholder="用户ID(支持多个|分割)" class="layui-input">
+                                </div>
                             </div>
                         </div>
+                        <div id="panel-all" style="display: none;">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">服务器</label>
+                                <div class="layui-input-block">
+                                    <div id="sids"></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="attachment">
                             <div class="layui-form-item">
                                 <label class="layui-form-label" for="item_id">附件</label>
@@ -36,10 +53,12 @@
                                     </div>
                                     <div class="layui-form-mid">-</div>
                                     <div class="layui-input-inline" style="width: 100px;">
-                                        <input type="text" name="item_nums[]" placeholder="物品数量" autocomplete="off" class="layui-input">
+                                        <input type="text" name="item_nums[]" placeholder="物品数量" autocomplete="off"
+                                               class="layui-input">
                                     </div>
                                     <div class="layui-input-inline">
-                                        <button type="button" class="layui-btn layui-btn-primary attach-del"><i class="layui-icon"></i></button>
+                                        <button type="button" class="layui-btn layui-btn-primary attach-del"><i
+                                                    class="layui-icon"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -53,7 +72,8 @@
                         <div class="layui-form-item">
                             <label class="layui-form-label" for="title">标题</label>
                             <div class="layui-input-block" style="width: 80%">
-                                <input type="text" name="title" id="title" lay-verify="required" autocomplete="off" class="layui-input">
+                                <input type="text" name="title" id="title" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
                             </div>
                         </div>
                         <div class="layui-form-item layui-form-text">
@@ -79,23 +99,55 @@
 
 
 {{ define "server/mail-script"}}
+    <script src="/static/xm-select/dist/xm-select.js"></script>
     <script>
         layui.use(['form', 'jquery'], function () {
             var form = layui.form;
             var $ = layui.jquery;
 
             form.on('submit(sub)', function (data) {
+                form.render('select');
                 var form_data = data.field;
-                $.post('/server/mail', form_data, function (out) {
-                    if (out.status === 0) {
-                        layer.msg("操作成功", {icon: 1}, function () {
-                            // window.location.href="/api/list";
-                        })
-                    } else {
-                        layer.msg(out.msg)
-                    }
-                }, "json");
+
+                layer.alert("确认提交吗", {icon: 1, time: 0, area: ['800px']}, function (index) {
+                    layer.close(index);
+                });
+
+                //全服邮件
+                if (form_data.hasOwnProperty("switch") === true) {
+                    var sidStr = selectSid.getValue("valueStr");
+                    form_data.sid = sidStr;
+                    $.post('/server/mail', form_data, function (out) {
+                        layer.alert(out.msg, {icon: 1, time: 0, area: ['800px']}, function (index) {
+                            layer.close(index);
+                            window.location.reload();
+                        });
+                    }, "json");
+
+                } else {
+                    $.post('/server/mail', form_data, function (out) {
+                        if (out.status === 0) {
+                            layer.alert(out.msg, {icon: 1, time: 0}, function (index) {
+                                layer.close(index);
+                                window.location.reload();
+                            });
+                        } else {
+                            layer.alert(out.msg, {icon: 5, time: 0})
+                        }
+                    }, "json");
+                }
+
                 return false;
+            });
+
+            form.on('switch(sw)', function (data) {
+                if (data.elem.checked === true) {
+                    $("#panel-all").show();
+                    $("#panel-single").hide();
+                } else {
+                    $("#panel-all").hide();
+                    $("#panel-single").show();
+                }
             });
 
             var html = $('.attachment').html();
@@ -109,10 +161,30 @@
 
             form.render();
 
-            $(document).on('click', '.attach-del', function() {
+            $(document).on('click', '.attach-del', function () {
+                var se_c = $('#select_num').val();
+                $('#select_num').val(parseInt(se_c) - 1);
                 $(this).parents('.layui-form-item').remove();
-            })
+                form.render('select');
+            });
 
+            $.post('/server/list', null, function (out) {
+                selectSid.update({
+                    data: out.data,
+                    autoRow: true,
+                })
+            }, "json");
+
+        });
+
+        var selectSid = xmSelect.render({
+            el: '#sids',
+            filterable: true,
+            toolbar: {
+                show: true,
+            },
+            autoRow: true,
+            data: [],
         });
 
     </script>

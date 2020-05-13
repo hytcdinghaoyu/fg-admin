@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fg-admin/config"
 	"fg-admin/constant"
+	"time"
 )
 
 const (
@@ -30,7 +31,7 @@ func GetServerList() interface{} {
 	if !ok {
 		ret := HttpPost(config.LoginServerAddr+"/serverlist", []byte(`{"act": "select"}`))
 		if data, ok := ret["data"]; ok {
-			MemCache.Set(constant.CACHE_SERVER_LIST, data, -1)
+			MemCache.Set(constant.CACHE_SERVER_LIST, data, time.Minute * 5)
 			return data
 		}
 	}
